@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>picoReader Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Device bezel -->
+    <div id="device">
+      <div id="device-label">picoReader</div>
+      <div id="screen-container">
+        <canvas id="lcd" width="160" height="128"></canvas>
+        <div id="backlight-overlay"></div>
+        <div id="loading-overlay">
+          <div id="loading-text">Loading Pyodide...</div>
+          <div id="loading-bar-container">
+            <div id="loading-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="controls">
+        <div id="dpad">
+          <button class="btn btn-up" data-key="1" title="UP">&#9650;</button>
+          <div class="dpad-middle">
+            <button class="btn btn-left" data-key="2" title="LEFT">&#9664;</button>
+            <button class="btn btn-center" data-key="0" title="CENTER"></button>
+            <button class="btn btn-right" data-key="3" title="RIGHT">&#9654;</button>
+          </div>
+          <button class="btn btn-down" data-key="4" title="DOWN">&#9660;</button>
+        </div>
+
+        <div id="clickwheel-container">
+          <svg id="clickwheel" viewBox="0 0 100 100" width="120" height="120">
+            <circle cx="50" cy="50" r="48" fill="#2a2a2a" stroke="#444" stroke-width="2" />
+            <circle cx="50" cy="50" r="20" fill="#1a1a1a" stroke="#333" stroke-width="1" />
+            <circle id="knob" cx="50" cy="8" r="5" fill="#666" />
+          </svg>
+          <div id="clickwheel-label">scroll / drag</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State inspector -->
+    <div id="inspector">
+      <h2>State Inspector</h2>
+
+      <div class="inspector-section">
+        <h3>Status</h3>
+        <div class="inspector-row">
+          <span class="label">Mode:</span>
+          <span id="insp-mode" class="value badge">MENU</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">State:</span>
+          <span id="insp-playing" class="value">Paused</span>
+        </div>
+      </div>
+
+      <div class="inspector-section">
+        <h3>Book</h3>
+        <div class="inspector-row">
+          <span class="label">Title:</span>
+          <span id="insp-title" class="value">--</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Author:</span>
+          <span id="insp-author" class="value">--</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Line:</span>
+          <span id="insp-line" class="value">0 / 0</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Word:</span>
+          <span id="insp-word" class="value">0</span>
+        </div>
+      </div>
+
+      <div class="inspector-section">
+        <h3>Settings</h3>
+        <div class="inspector-row">
+          <span class="label">WPM:</span>
+          <span id="insp-wpm" class="value">200</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Brightness:</span>
+          <span id="insp-brightness" class="value">50%</span>
+        </div>
+        <div class="inspector-row">
+          <span class="label">Theme:</span>
+          <span id="insp-theme" class="value">
+            <span class="color-swatch" id="swatch-bg"></span>
+            <span class="color-swatch" id="swatch-text"></span>
+            <span class="color-swatch" id="swatch-wpm"></span>
+            <span class="color-swatch" id="swatch-hl"></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="inspector-section">
+        <h3>Display Group</h3>
+        <div id="insp-group-tree" class="tree"></div>
+      </div>
+
+      <div class="inspector-section inspector-section-grow">
+        <h3>Console</h3>
+        <div id="insp-console"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.ts"></script>
+</body>
+</html>

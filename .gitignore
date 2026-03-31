@@ -1,0 +1,39 @@
+# Books (copyrighted content)
+SD CARD/
+simulator/public/assets/books/
+simulator/dist/assets/books/
+
+# Save files (personal reading progress)
+saves/
+
+# Backups
+backup/
+
+# Fonts (see README for sourcing instructions)
+fonts/
+simulator/public/assets/fonts/
+
+# Precompiled Adafruit libraries (install via circup)
+lib/
+
+# Work-in-progress firmware
+code_v2.py
+
+# CircuitPython output
+boot_out.txt
+settings.toml
+
+# Simulator build artifacts & dependencies
+simulator/node_modules/
+simulator/dist/
+
+# OS and editor junk
+.fseventsd/
+.metadata_never_index
+.Trash-*/
+.Trashes
+__pycache__/
+*.pyc
+
+# Playwright MCP logs
+.playwright-mcp/
