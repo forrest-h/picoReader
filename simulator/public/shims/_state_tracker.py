@@ -1,13 +1,13 @@
 """Tracks application state and sends updates to the main thread.
 
-The state tracker is initialized after code_v2.py creates its objects.
+The state tracker is initialized after code.py creates its objects.
 We hook into it by having the worker set references after main() starts.
 For now, we use a polling approach: on each display.refresh(), we try
 to read state from well-known global variables.
 """
 from _bridge import post_message
 
-# These get set by a small wrapper around code_v2.py's main()
+# These get set by a small wrapper around code.py's main()
 _app_state = None
 _book_reader = None
 _book_metadata = None

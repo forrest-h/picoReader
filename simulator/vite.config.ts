@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
   root: '.',
@@ -9,6 +10,9 @@ export default defineConfig({
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+    fs: {
+      allow: ['.', path.resolve(__dirname, '../firmware')],
     },
   },
 });

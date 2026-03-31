@@ -1,4 +1,4 @@
-// Web Worker: loads Pyodide, mounts virtual FS, runs code_v2.py with shim modules
+// Web Worker: loads Pyodide, mounts virtual FS, runs code.py with shim modules
 
 const _self = self as unknown as DedicatedWorkerGlobalScope & {
   __buttonQueue: Array<{ keyNumber: number; pressed: boolean }>;
@@ -125,7 +125,7 @@ async function startPyodide() {
     }
   }
 
-  // Create app directory for code_v2.py
+  // Create app directory for code.py
   pyodide.FS.mkdirTree('/app');
 
   // Set working directory to / so relative paths (saves/, fonts/) resolve correctly
@@ -157,25 +157,25 @@ sys.stderr = _ConsoleWriter()
   `);
 
   _self.postMessage({ type: 'ready' });
-  _self.postMessage({ type: 'console', message: 'Starting code_v2.py...' });
+  _self.postMessage({ type: 'console', message: 'Starting code.py...' });
 
-  // Fetch the application code
+  // Fetch the application code from the firmware directory
   let code: string;
   try {
-    const resp = await fetch('/code_v2.py');
+    const resp = await fetch('../firmware/code.py');
     code = await resp.text();
   } catch (err: any) {
     _self.postMessage({
       type: 'console',
-      message: `Failed to fetch code_v2.py: ${err.message ?? err}`,
+      message: `Failed to fetch code.py: ${err.message ?? err}`,
     });
     return;
   }
 
-  // Write code_v2.py to the virtual FS, stripping the module-level main() call
+  // Write code.py to the virtual FS, stripping the module-level main() call
   // so we can import it without it auto-executing
   const strippedCode = code.replace(/^main\(\)\s*$/m, '# main() — called by simulator wrapper');
-  pyodide.FS.writeFile('/app/code_v2.py', strippedCode);
+  pyodide.FS.writeFile('/app/code.py', strippedCode);
 
   // Run with a wrapper that hooks into the application objects for state tracking
   // and save file mirroring
@@ -185,14 +185,14 @@ import sys
 sys.path.insert(0, '/app')
 
 # Import the application module
-import code_v2
+import code
 
 # Monkey-patch save methods to mirror writes to main thread
 import _state_tracker
 from _bridge import post_message
 
-_original_save_place = code_v2.BookReader.save_place
-_original_save_backup = code_v2.BookReader.save_backup
+_original_save_place = code.BookReader.save_place
+_original_save_backup = code.BookReader.save_backup
 
 def _patched_save_place(self):
     _original_save_place(self)
@@ -212,35 +212,35 @@ def _patched_save_backup(self):
     except:
         pass
 
-code_v2.BookReader.save_place = _patched_save_place
-code_v2.BookReader.save_backup = _patched_save_backup
+code.BookReader.save_place = _patched_save_place
+code.BookReader.save_backup = _patched_save_backup
 
 # Monkey-patch main() to register state tracker
-_original_main = code_v2.main
+_original_main = code.main
 
 async def _patched_main():
-    hw_display, backlight, spi, encoder = code_v2.init_hardware()
-    font = code_v2.bitmap_font.load_font("fonts/Toronto_14.pcf")
-    smallfont = code_v2.bitmap_font.load_font("fonts/Toronto_9.pcf")
+    hw_display, backlight, spi, encoder = code.init_hardware()
+    font = code.bitmap_font.load_font("fonts/Toronto_14.pcf")
+    smallfont = code.bitmap_font.load_font("fonts/Toronto_9.pcf")
 
-    books = [x for x in code_v2.os.listdir("/sd/books/") if x.endswith('.txt')]
+    books = [x for x in code.os.listdir("/sd/books/") if x.endswith('.txt')]
     if not books:
         return
 
-    metadata = [code_v2.parse_book_filename(b) for b in books]
+    metadata = [code.parse_book_filename(b) for b in books]
     lens = [m[3] for m in metadata]
 
-    state = code_v2.AppState()
-    book = code_v2.BookReader(books, metadata, lens)
+    state = code.AppState()
+    book = code.BookReader(books, metadata, lens)
     book.load_place()
-    disp = code_v2.Display(hw_display, backlight, font, smallfont)
+    disp = code.Display(hw_display, backlight, font, smallfont)
 
     # Register with state tracker
     _state_tracker.register(state, book, metadata)
 
     disp.show_menu_screen(metadata, 0, len(books))
 
-    with code_v2.keypad.Keys(code_v2.PIN_BUTTONS, value_when_pressed=False, pull=True) as keys:
+    with code.keypad.Keys(code.PIN_BUTTONS, value_when_pressed=False, pull=True) as keys:
         # Instead of calling main_loop (which has a blocking while True),
         # run an async version that yields to the browser event loop
         await _async_main_loop(state, book, disp, keys, encoder)
@@ -264,22 +264,22 @@ def _step_forward_robust(book):
     return None
 
 async def _async_main_loop(state, book, disp, keys, encoder):
-    """Async replacement for code_v2.main_loop that yields via JS setTimeout."""
+    """Async replacement for code.main_loop that yields via JS setTimeout."""
     import asyncio
     from js import Promise, self as _w
 
     last_enc_pos = encoder.position
-    last_word_time = code_v2.time.monotonic()
+    last_word_time = code.time.monotonic()
     lines_since_save = 0
     last_line = book.line_num
 
     while True:
-        now = code_v2.time.monotonic()
+        now = code.time.monotonic()
 
         # --- Buttons ---
         event = keys.events.get()
         if event and event.pressed:
-            handler = code_v2.BUTTON_HANDLERS.get((state.mode, event.key_number))
+            handler = code.BUTTON_HANDLERS.get((state.mode, event.key_number))
             if handler:
                 handler(state, book, disp)
 
@@ -287,17 +287,17 @@ async def _async_main_loop(state, book, disp, keys, encoder):
         enc_pos = encoder.position
         if enc_pos != last_enc_pos:
             direction = 1 if enc_pos > last_enc_pos else -1
-            handler = code_v2.ENCODER_HANDLERS.get((state.mode, direction))
+            handler = code.ENCODER_HANDLERS.get((state.mode, direction))
             if handler:
                 handler(state, book, disp)
             last_enc_pos = enc_pos
 
         # --- Word display timer ---
-        if state.mode == code_v2.AppState.MODE_READER and state.playing:
+        if state.mode == code.AppState.MODE_READER and state.playing:
             if now - last_word_time >= state.speed:
                 word = _step_forward_robust(book)
                 if word:
-                    cleaned = code_v2.clean_word(word)
+                    cleaned = code.clean_word(word)
                     if len(cleaned) > 17:
                         for part in cleaned.split('-'):
                             disp.show_word(part + '-')
@@ -311,7 +311,7 @@ async def _async_main_loop(state, book, disp, keys, encoder):
                     if book.line_num != last_line:
                         lines_since_save += book.line_num - last_line
                         last_line = book.line_num
-                        if lines_since_save >= code_v2.SAVE_INTERVAL:
+                        if lines_since_save >= code.SAVE_INTERVAL:
                             book.save_place()
                             disp.update_progress(book.line_num, book.book_len)
                             disp.refresh()
@@ -340,7 +340,7 @@ await _patched_main()
   } catch (err: any) {
     _self.postMessage({
       type: 'console',
-      message: `Error running code_v2.py: ${err.message ?? err}`,
+      message: `Error running code.py: ${err.message ?? err}`,
     });
   }
 }

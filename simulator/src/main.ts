@@ -179,7 +179,7 @@ class App {
 
       case 'ready':
         document.getElementById('loading-overlay')?.classList.add('hidden');
-        this.inspector.log('Pyodide ready, starting code_v2.py...');
+        this.inspector.log('Pyodide ready, starting code.py...');
         break;
 
       case 'brightness': {
