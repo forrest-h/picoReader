@@ -12,6 +12,8 @@ class BookReader:
         self.word_idx = 0
         self._cache = []
         self._cache_start = -1
+        self.chapters = []
+        self.chapter_index = -1
 
     def _ensure_cached(self, line):
         if self._cache_start <= line < self._cache_start + len(self._cache):
@@ -93,8 +95,49 @@ class BookReader:
         self._cache_start = -1
         self._cache = []
 
+    def build_chapter_index(self):
+        """Scan book file for ---CHAPTER: title--- markers."""
+        self.chapters = []
+        try:
+            with open("/sd/books/{}".format(self.book), 'r') as f:
+                line_num = 0
+                for line in f:
+                    stripped = line.strip()
+                    if stripped.startswith('---CHAPTER:') and stripped.endswith('---'):
+                        title = stripped[11:-3].strip()
+                        self.chapters.append((line_num, title))
+                    line_num += 1
+        except OSError:
+            self.chapters = []
+        self._update_chapter_index()
+
+    def _update_chapter_index(self):
+        """Find which chapter the current line_num falls in."""
+        self.chapter_index = -1
+        for i, (ch_line, _) in enumerate(self.chapters):
+            if self.line_num >= ch_line:
+                self.chapter_index = i
+            else:
+                break
+
+    def jump_to_chapter(self, direction):
+        """Jump to previous (-1) or next (+1) chapter. Returns chapter title or None."""
+        if not self.chapters:
+            return None
+        target = self.chapter_index + direction
+        if target < 0 or target >= len(self.chapters):
+            return None
+        line_num, title = self.chapters[target]
+        self.line_num = line_num + 1  # Skip the marker line itself
+        self.word_idx = 0
+        self._cache_start = -1
+        self._cache = []
+        self.chapter_index = target
+        return title
+
     def select_book(self, book_id):
         self.book_id = book_id
         self.book = self.books[book_id]
         self.book_len = self.book_lens[book_id]
         self.load_place()
+        self.build_chapter_index()

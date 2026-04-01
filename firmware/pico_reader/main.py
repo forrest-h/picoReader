@@ -13,6 +13,8 @@ from .display import Display
 from .input_handlers import BUTTON_HANDLERS, ENCODER_HANDLERS
 from .utils import parse_book_filename, clean_word
 from .settings import load_settings
+from . import menu as menu_mod
+from . import recent
 
 
 def main_loop(state, book, disp, keys, encoder):
@@ -147,9 +149,15 @@ def main():
     state = AppState(settings=settings)
     book = BookReader(books, metadata, lens)
     book.load_place()
+
+    # Build menu tree
+    recent_filenames = recent.load_recent()
+    root = menu_mod.build_menu_tree(books, metadata, recent_filenames)
+    state.menu_state = menu_mod.MenuState(root)
+
     disp = Display(hw_display, backlight, font, smallfont)
     disp.set_brightness(state.brightness)
-    disp.show_menu_screen(metadata, 0, len(books))
+    disp.show_menu_screen(state.menu_state, metadata)
 
     with keypad.Keys(PIN_BUTTONS, value_when_pressed=False, pull=True) as keys:
         main_loop(state, book, disp, keys, encoder)

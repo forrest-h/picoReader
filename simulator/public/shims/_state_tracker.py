@@ -53,4 +53,9 @@ def send_state():
             msg["bookTitle"] = meta[0] if len(meta) > 0 else ""
             msg["bookAuthor"] = meta[1] if len(meta) > 1 else ""
 
+    if _app_state.menu_state:
+        msg["menuBreadcrumb"] = _app_state.menu_state.breadcrumb()
+        msg["menuCursor"] = _app_state.menu_state.cursor
+        msg["menuDepth"] = len(_app_state.menu_state.path) - 1
+
     post_message(msg)

@@ -41,6 +41,7 @@ class AppState:
     MODE_MENU = 0
     MODE_READER = 1
     MODE_DISPLAY = 2
+    MODE_JUMP = 3
 
     def __init__(self, settings=None):
         self.mode = self.MODE_MENU
@@ -55,6 +56,8 @@ class AppState:
         self.smart_pacing = False
         self.play_start_time = 0.0
         self._next_word_delay = 60.0 / DEFAULT_WPM
+        self.jump_pct = 0
+        self.menu_state = None  # Set after menu tree is built in main()
         if settings:
             self.theme_index = int(settings.get('palette', '0'))
             self.brightness = int(settings.get('brightness', str(DEFAULT_BRIGHTNESS)))

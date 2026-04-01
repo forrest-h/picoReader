@@ -1,0 +1,146 @@
+<h2>picoReader UI Theme Concepts</h2>
+<p class="subtitle">Creative display modes for 160x128 pixel screen. Click any that excite you.</p>
+
+<div class="options" data-multiselect>
+
+  <div class="option" data-choice="gameboy" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Game Boy Classic</h3>
+      <p>Pea-green LCD palette (#0f380f, #306230, #8bac0f, #9bbc0f). Chunky pixel aesthetic. Word display styled like a Game Boy text box with a border. Menu looks like a Pokemon-style item list. Optional: scan line overlay effect.</p>
+      <div class="mockup" style="background:#9bbc0f;padding:12px;border-radius:4px;margin-top:8px;font-family:monospace;">
+        <div style="border:3px solid #0f380f;padding:8px;background:#8bac0f;border-radius:2px;">
+          <div style="text-align:center;color:#0f380f;font-size:18px;font-weight:bold;letter-spacing:2px;">wandering</div>
+          <div style="display:flex;justify-content:space-between;color:#306230;font-size:11px;margin-top:6px;">
+            <span>WPM: 200</span>
+            <span style="background:#306230;height:4px;width:60%;margin-top:6px;display:block;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="terminal" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Retro Terminal / CRT</h3>
+      <p>Green-on-black (or amber-on-black) phosphor monitor aesthetic. Word appears with a subtle "type-on" feel. Blinking cursor after the word. Menu styled like a DOS file manager or BBS. Progress shown as [=====>    ] ASCII bar.</p>
+      <div class="mockup" style="background:#000;padding:12px;border-radius:4px;margin-top:8px;font-family:monospace;">
+        <div style="color:#33ff33;text-align:center;">
+          <div style="font-size:10px;color:#1a8a1a;">C:\BOOKS\EARTHSEA&gt;</div>
+          <div style="font-size:18px;margin:8px 0;text-shadow:0 0 8px #33ff33;">wandering<span style="animation:blink 1s infinite;">_</span></div>
+          <div style="font-size:10px;color:#1a8a1a;">[======&gt;         ] 38%  200wpm</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="typewriter" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Vintage Typewriter</h3>
+      <p>Warm cream/sepia background (#f4ecd8). Dark brown ink text. Word appears slightly off-center (like real typewriter imperfection). Subtle ink splatter dots around the word area. Menu styled like a library card catalog.</p>
+      <div class="mockup" style="background:#f4ecd8;padding:12px;border-radius:4px;margin-top:8px;font-family:serif;">
+        <div style="text-align:center;">
+          <div style="color:#3d2b1f;font-size:18px;font-weight:bold;transform:rotate(-0.5deg);letter-spacing:1px;">wandering</div>
+          <div style="color:#8b7355;font-size:10px;margin-top:8px;">~ 200 wpm ~</div>
+          <div style="height:2px;background:#8b7355;width:38%;margin:4px auto;opacity:0.6;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="pixel-rpg" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Pixel RPG / Text Adventure</h3>
+      <p>Dark dungeon background. Word displayed in an RPG dialogue box with ornate pixel border. "HP bar" style progress. Menu looks like an RPG inventory screen. Optional: tiny sprite character in corner that reacts to reading speed.</p>
+      <div class="mockup" style="background:#1a1a2e;padding:12px;border-radius:4px;margin-top:8px;font-family:monospace;">
+        <div style="border:2px solid #e6c200;padding:8px;background:#16213e;border-radius:2px;">
+          <div style="color:#e6c200;font-size:9px;">* A voice speaks... *</div>
+          <div style="text-align:center;color:#eee;font-size:18px;margin:6px 0;">wandering</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:9px;">
+            <span style="color:#e6c200;">PROG</span>
+            <div style="flex:1;height:6px;background:#0f3460;border:1px solid #e6c200;border-radius:1px;">
+              <div style="width:38%;height:100%;background:#e94560;border-radius:1px;"></div>
+            </div>
+            <span style="color:#53a653;">200</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<h2 style="margin-top:32px;">Animated Elements</h2>
+<p class="subtitle">Fun additions that play during reading. These would update between words.</p>
+
+<div class="options" data-multiselect>
+
+  <div class="option" data-choice="walking-char" onclick="toggleSelect(this)">
+    <div class="letter">E</div>
+    <div class="content">
+      <h3>Walking Character</h3>
+      <p>A tiny pixel character walks along the bottom of the screen (or along the progress bar). Walking speed matches WPM: strolling at 150, jogging at 300, sprinting at 400+. Different characters unlockable (wizard, knight, astronaut). The character IS the progress indicator.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="weather" onclick="toggleSelect(this)">
+    <div class="letter">F</div>
+    <div class="content">
+      <h3>Ambient Weather / Particles</h3>
+      <p>Subtle particle effects in the margins: falling snow, rain drops, floating dust motes, fireflies at night. Changes based on time of day or reading duration. Purely decorative, stays out of the word area.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="pulse" onclick="toggleSelect(this)">
+    <div class="letter">G</div>
+    <div class="content">
+      <h3>Breathing / Pulse Effect</h3>
+      <p>The guide marks or border subtly pulse in sync with the word timing. Creates a rhythmic, meditative feel. At higher WPM the pulse quickens. Very subtle -- barely noticeable but adds life.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="page-turn" onclick="toggleSelect(this)">
+    <div class="letter">H</div>
+    <div class="content">
+      <h3>Page Turn Counter</h3>
+      <p>A tiny book icon in the corner with a page count. Every ~250 words, the "page" flips with a mini animation. Gives a sense of physical progress. "pg 42" feels more tangible than "38%".</p>
+    </div>
+  </div>
+
+</div>
+
+<h2 style="margin-top:32px;">ORP / Bionic Reading Modes</h2>
+<p class="subtitle">Highlight the Optimal Recognition Point for faster reading.</p>
+
+<div class="options" data-multiselect>
+
+  <div class="option" data-choice="orp-color" onclick="toggleSelect(this)">
+    <div class="letter">I</div>
+    <div class="content">
+      <h3>ORP Color Highlight</h3>
+      <p>The fixation letter (roughly 1/3 into the word) is displayed in the theme's highlight color. Rest of the word in normal text color. Classic Spritz-style. Works with any theme.</p>
+      <div class="mockup" style="background:#000;padding:12px;border-radius:4px;margin-top:8px;text-align:center;font-family:monospace;">
+        <span style="color:#999;font-size:20px;">wa</span><span style="color:#e94560;font-size:20px;font-weight:bold;">n</span><span style="color:#999;font-size:20px;">dering</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="orp-bold" onclick="toggleSelect(this)">
+    <div class="letter">J</div>
+    <div class="content">
+      <h3>Bold-Fade (Bionic Style)</h3>
+      <p>First ~40% of the word in bold/bright, rest fades to a dimmer color. Your eye grabs the bold part and fills in the rest. Works especially well at high WPM.</p>
+      <div class="mockup" style="background:#000;padding:12px;border-radius:4px;margin-top:8px;text-align:center;font-family:monospace;">
+        <span style="color:#fff;font-size:20px;font-weight:bold;">wand</span><span style="color:#555;font-size:20px;">ering</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+@keyframes blink { 0%,50% { opacity:1; } 51%,100% { opacity:0; } }
+</style>
