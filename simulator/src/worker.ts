@@ -162,7 +162,7 @@ sys.stderr = _ConsoleWriter()
   // Fetch the application code from the firmware directory
   let code: string;
   try {
-    const resp = await fetch('../firmware/code.py');
+    const resp = await fetch('/firmware/code.py');
     code = await resp.text();
   } catch (err: any) {
     _self.postMessage({
@@ -188,13 +188,14 @@ sys.stderr = _ConsoleWriter()
     'input_handlers',
     'utils',
     'main',
+    'settings',
   ];
 
   pyodide.FS.mkdirTree('/app/pico_reader');
 
   for (const mod of picoModules) {
     try {
-      const resp = await fetch(`../firmware/pico_reader/${mod}.py`);
+      const resp = await fetch(`/firmware/pico_reader/${mod}.py`);
       if (resp.ok) {
         const code = await resp.text();
         pyodide.FS.writeFile(`/app/pico_reader/${mod}.py`, code);
