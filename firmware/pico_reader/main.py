@@ -50,10 +50,12 @@ def main_loop(state, book, disp, keys, encoder):
                         for part in cleaned.split('-'):
                             disp.show_word(part + '-')
                             disp.show_wpm(state.wpm)
+                            disp.tick_animation(state, book)
                             disp.refresh()
                     else:
                         disp.show_word(cleaned)
                         disp.show_wpm(state.wpm)
+                        disp.tick_animation(state, book)
                         disp.refresh()
 
                     # Auto-save and progress update

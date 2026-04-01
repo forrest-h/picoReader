@@ -47,11 +47,25 @@ class Bitmap:
 
 
 class TileGrid:
-    def __init__(self, bitmap, pixel_shader=None, x=0, y=0, **kwargs):
+    def __init__(self, bitmap, pixel_shader=None, x=0, y=0,
+                 tile_width=None, tile_height=None, **kwargs):
         self.bitmap = bitmap
         self.pixel_shader = pixel_shader
         self.x = x
         self.y = y
+        self.tile_width = tile_width or bitmap.width
+        self.tile_height = tile_height or bitmap.height
+        self._tiles = [0]
+
+    def __setitem__(self, index, value):
+        if index >= len(self._tiles):
+            self._tiles.extend([0] * (index + 1 - len(self._tiles)))
+        self._tiles[index] = value
+
+    def __getitem__(self, index):
+        if index >= len(self._tiles):
+            return 0
+        return self._tiles[index]
 
     def serialize(self):
         bmp = self.bitmap
@@ -88,6 +102,9 @@ class Group:
 
     def __getitem__(self, index):
         return self._children[index]
+
+    def pop(self, index=-1):
+        return self._children.pop(index)
 
     def __len__(self):
         return len(self._children)
