@@ -3,6 +3,7 @@ from .hardware import init_hardware
 from .state import AppState
 from .book_reader import BookReader
 from .display import Display
+from .skins import SKIN_NAMES, load_skin
 from .input_handlers import (BUTTON_HANDLERS, ENCODER_HANDLERS,
     toggle_play, goto_menu, goto_display, select_and_play,
     goto_reader_toggle, cycle_theme_fwd, cycle_theme_back,
