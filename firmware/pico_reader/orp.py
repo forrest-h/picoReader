@@ -30,9 +30,11 @@ def calc_orp_positions(word, font, anchor_x=80):
         prefix_width = 0
     orp_width = font.get_glyph(ord(orp_char)).shift_x
 
-    prefix_x = anchor_x - prefix_width - orp_width // 2
+    # Add 1px padding on each side of the ORP letter for legibility
+    pad = 1
+    prefix_x = anchor_x - prefix_width - orp_width // 2 - pad
     orp_x = anchor_x - orp_width // 2
-    suffix_x = anchor_x + orp_width // 2
+    suffix_x = anchor_x + orp_width // 2 + pad
 
     # Clamp to screen bounds
     prefix_x = max(0, prefix_x)

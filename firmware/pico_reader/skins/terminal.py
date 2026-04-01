@@ -275,6 +275,9 @@ class Skin:
                     meta = book_metadata[node.book_id]
                     item_lbl.text = "{}{}".format(prefix, meta[0])
                     detail_lbl.text = "  {}".format(meta[1])
+                elif getattr(node, 'setting_key', None) is not None:
+                    item_lbl.text = "{}{}".format(prefix, node.label)
+                    detail_lbl.text = ''
                 else:
                     child_count = len(node.children) if node.children else 0
                     item_lbl.text = "{}{}/".format(prefix, node.label)

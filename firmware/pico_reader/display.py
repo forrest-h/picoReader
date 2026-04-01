@@ -22,6 +22,7 @@ class Display:
         SkinClass = load_skin(skin_name)
         self.skin = SkinClass(self._font, self._smallfont)
         self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+        self._base_group_size = len(self.reader_group)
         self._font_dirty = False
         self._rebuild_menu_group()
 
@@ -103,8 +104,9 @@ class Display:
 
     def set_animation(self, name):
         """Swap the active animation. Remove old elements, add new ones."""
-        # Remove old animation elements (everything past index 7)
-        while len(self.reader_group) > 8:
+        # Remove old animation elements (everything past the skin's base group)
+        base = getattr(self, '_base_group_size', 8)
+        while len(self.reader_group) > base:
             self.reader_group.pop()
         if self._animation is not None:
             self._animation.destroy()
@@ -198,8 +200,13 @@ class Display:
                     slot_labels[0].text = meta[0]  # title
                     slot_labels[1].text = meta[1]  # author
                     slot_labels[2].text = meta[2] if slot_idx < 2 else ''  # series
+                elif getattr(node, 'setting_key', None) is not None:
+                    # Settings leaf -- show label only
+                    slot_labels[0].text = node.label
+                    slot_labels[1].text = ''
+                    slot_labels[2].text = ''
                 else:
-                    # Category node -- show label only
+                    # Category node -- show label + child count
                     slot_labels[0].text = node.label
                     child_count = len(node.children) if node.children else 0
                     slot_labels[1].text = "({})".format(child_count)

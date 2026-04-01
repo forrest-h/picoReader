@@ -342,6 +342,9 @@ class Skin:
                     meta = book_metadata[node.book_id]
                     title_lbl.text = meta[0]
                     detail_lbl.text = meta[1]
+                elif getattr(node, 'setting_key', None) is not None:
+                    title_lbl.text = node.label
+                    detail_lbl.text = ''
                 else:
                     child_count = len(node.children) if node.children else 0
                     title_lbl.text = node.label
