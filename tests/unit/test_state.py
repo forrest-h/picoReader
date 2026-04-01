@@ -43,3 +43,14 @@ class TestAppState:
         assert AppState.MODE_MENU == 0
         assert AppState.MODE_READER == 1
         assert AppState.MODE_DISPLAY == 2
+
+    def test_mode_jump_constant(self):
+        assert AppState.MODE_JUMP == 3
+
+    def test_jump_pct_default(self):
+        s = AppState()
+        assert s.jump_pct == 0
+
+    def test_menu_state_default(self):
+        s = AppState()
+        assert s.menu_state is None

@@ -67,6 +67,7 @@ else:
 # =============================================================================
 
 import pytest
+from pico_reader.utils import parse_book_filename
 
 
 @pytest.fixture
@@ -89,3 +90,20 @@ def book_reader_env(tmp_path, monkeypatch):
     monkeypatch.setattr('builtins.open', patched_open)
 
     return tmp_path, books_dir, saves_dir
+
+
+@pytest.fixture
+def sample_books_with_genres():
+    """Returns a list of filenames with genre tags."""
+    return [
+        "(Earthsea 1) [Fantasy] Ursula K Le Guin - A Wizard Of Earthsea (1835).txt",
+        "[Science Fiction] Andy Weir - The Martian (3500).txt",
+        "Terry Pratchett - Guards Guards (9200).txt",
+        "(Red Rising 1) [Science Fiction] Pierce Brown - Red Rising (5000).txt",
+    ]
+
+
+@pytest.fixture
+def sample_metadata_with_genres(sample_books_with_genres):
+    """Returns parsed metadata for genre-tagged books."""
+    return [parse_book_filename(b) for b in sample_books_with_genres]

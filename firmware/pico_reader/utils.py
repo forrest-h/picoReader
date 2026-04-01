@@ -1,17 +1,30 @@
 def parse_book_filename(filename):
-    """Parse '(Series) Author - Title (wordcount).txt' into components."""
+    """Parse '(Series) [Genre] Author - Title (wordcount).txt' into components.
+
+    Returns (title, author, series, wordcount, genre) tuple.
+    Missing genre defaults to 'Uncategorized'.
+    """
     try:
         name = filename.rsplit('.', 1)[0]
         parts = name.split(' - ', 1)
         if len(parts) == 2:
             author_part, title_part = parts
+            # Extract optional (Series) prefix
             if author_part.startswith('('):
                 close = author_part.find(')')
                 series = author_part[1:close]
-                author = author_part[close+1:].strip()
+                author_part = author_part[close+1:].strip()
             else:
                 series = ''
-                author = author_part.strip()
+            # Extract optional [Genre] tag
+            genre = ''
+            if '[' in author_part:
+                bracket_open = author_part.index('[')
+                bracket_close = author_part.index(']', bracket_open)
+                genre = author_part[bracket_open + 1:bracket_close].strip()
+                author_part = author_part[bracket_close + 1:].strip()
+            author = author_part.strip()
+            # Extract title and wordcount
             paren = title_part.rfind('(')
             if paren != -1:
                 title = title_part[:paren].strip()
@@ -20,10 +33,12 @@ def parse_book_filename(filename):
                 title = title_part.strip()
                 wordcount = 10000
         else:
-            title, author, series, wordcount = name, '', '', 10000
+            title, author, series, wordcount, genre = name, '', '', 10000, ''
     except (IndexError, ValueError):
-        title, author, series, wordcount = filename, '', '', 10000
-    return title, author, series, wordcount
+        title, author, series, wordcount, genre = filename, '', '', 10000, ''
+    if not genre:
+        genre = 'Uncategorized'
+    return title, author, series, wordcount, genre
 
 
 def clean_word(word):

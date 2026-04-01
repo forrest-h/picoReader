@@ -189,6 +189,8 @@ sys.stderr = _ConsoleWriter()
     'utils',
     'main',
     'settings',
+    'menu',
+    'recent',
   ];
 
   pyodide.FS.mkdirTree('/app/pico_reader');
@@ -264,12 +266,18 @@ async def _patched_main():
     state = code.AppState()
     book = code.BookReader(books, metadata, lens)
     book.load_place()
+
+    # Build menu tree
+    recent_filenames = code.recent.load_recent()
+    root = code.menu.build_menu_tree(books, metadata, recent_filenames)
+    state.menu_state = code.menu.MenuState(root)
+
     disp = code.Display(hw_display, backlight, font, smallfont)
 
     # Register with state tracker
     _state_tracker.register(state, book, metadata)
 
-    disp.show_menu_screen(metadata, 0, len(books))
+    disp.show_menu_screen(state.menu_state, metadata)
 
     with code.keypad.Keys(code.PIN_BUTTONS, value_when_pressed=False, pull=True) as keys:
         # Instead of calling main_loop (which has a blocking while True),
