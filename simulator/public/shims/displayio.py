@@ -72,7 +72,34 @@ class TileGrid:
         pal = self.pixel_shader
         palette_colors = list(pal._colors) if pal else [0]
 
-        # Check if bitmap has any non-zero pixel (i.e. it has per-pixel data)
+        tw = self.tile_width
+        th = self.tile_height
+
+        # If using tiles (sprite sheet), extract only the active tile's pixels
+        if tw != bmp.width or th != bmp.height:
+            tile_idx = self._tiles[0] if self._tiles else 0
+            cols = bmp.width // tw
+            tile_col = tile_idx % cols
+            tile_row = tile_idx // cols
+            tile_data = []
+            for row in range(th):
+                src_y = tile_row * th + row
+                for col in range(tw):
+                    src_x = tile_col * tw + col
+                    tile_data.append(bmp._data[src_y * bmp.width + src_x])
+            node = {
+                "type": "tilegrid",
+                "x": self.x,
+                "y": self.y,
+                "w": tw,
+                "h": th,
+                "paletteColors": palette_colors,
+            }
+            if any(v != 0 for v in tile_data):
+                node["bitmapData"] = tile_data
+            return node
+
+        # Non-tiled: send full bitmap
         has_pixel_data = any(v != 0 for v in bmp._data)
 
         node = {

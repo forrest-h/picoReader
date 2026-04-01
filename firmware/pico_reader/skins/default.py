@@ -112,13 +112,18 @@ class Skin:
         if orp_mode == 'color' and len(word) > 1:
             prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
                 word, self._font)
-            self._word_prefix.anchor_point = (0.0, 1)
+            # Prefix: right-anchored so its right edge meets ORP
+            self._word_prefix.anchor_point = (1.0, 1)
             self._word_prefix.anchored_position = (px, 70)
             self._word_prefix.text = prefix
             self._word_prefix.color = PALETTES[self._palette_index]['text']
+            # ORP char: centered at anchor point
+            self._word_orp.anchor_point = (0.5, 1)
             self._word_orp.anchored_position = (ox, 70)
             self._word_orp.text = orp_char
             self._word_orp.color = PALETTES[self._palette_index]['highlight']
+            # Suffix: left-anchored from ORP right edge
+            self._word_suffix.anchor_point = (0.0, 1)
             self._word_suffix.anchored_position = (sx, 70)
             self._word_suffix.text = suffix
             self._word_suffix.color = PALETTES[self._palette_index]['text']

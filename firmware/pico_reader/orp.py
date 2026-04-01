@@ -16,29 +16,37 @@ def calc_orp_positions(word, font, anchor_x=80):
     """Return (prefix, orp_char, suffix, prefix_x, orp_x, suffix_x).
 
     Uses font glyph metrics to calculate pixel positions.
-    The ORP letter is anchored at anchor_x (screen center).
+    The ORP letter is centered at anchor_x (screen center).
+
+    Positioning strategy:
+      - prefix: right-anchored so its right edge meets the ORP left edge
+      - orp_char: centered at anchor_x
+      - suffix: left-anchored so its left edge meets the ORP right edge
+    Callers must set anchor_point accordingly:
+      - prefix label: anchor_point = (1.0, y) at prefix_x
+      - orp label: anchor_point = (0.5, y) at orp_x
+      - suffix label: anchor_point = (0.0, y) at suffix_x
     """
     idx = calc_orp_index(word)
     prefix = word[:idx]
     orp_char = word[idx]
     suffix = word[idx + 1:]
 
-    # Get pixel widths from font glyph metrics
-    if prefix:
-        prefix_width = sum(font.get_glyph(ord(c)).shift_x for c in prefix)
-    else:
-        prefix_width = 0
+    # Get ORP character width from font glyph metrics
     orp_width = font.get_glyph(ord(orp_char)).shift_x
 
-    # Add 1px padding on each side of the ORP letter for legibility
-    pad = 1
-    prefix_x = anchor_x - prefix_width - orp_width // 2 - pad
-    orp_x = anchor_x - orp_width // 2
-    suffix_x = anchor_x + orp_width // 2 + pad
+    # ORP char centered at anchor_x
+    orp_x = anchor_x
+
+    # Prefix right edge meets ORP left edge (with 1px gap)
+    prefix_x = anchor_x - orp_width // 2 - 1
+
+    # Suffix left edge meets ORP right edge (with 1px gap)
+    suffix_x = anchor_x + (orp_width + 1) // 2 + 1
 
     # Clamp to screen bounds
-    prefix_x = max(0, prefix_x)
-    suffix_x = min(155, suffix_x)  # Leave 5px margin
+    prefix_x = max(5, prefix_x)
+    suffix_x = min(155, suffix_x)
 
     return prefix, orp_char, suffix, prefix_x, orp_x, suffix_x
 

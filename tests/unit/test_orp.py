@@ -123,8 +123,8 @@ class TestCalcOrpPositions:
     def test_orp_anchored_at_center(self):
         font = FakeFont(8)
         _, _, _, _, orp_x, _ = calc_orp_positions('hello', font, anchor_x=80)
-        # orp_x = 80 - 8//2 = 76
-        assert orp_x == 76
+        # orp_x is now the center anchor point (used with anchor_point=(0.5, y))
+        assert orp_x == 80
 
     def test_prefix_x_no_overflow(self):
         """Prefix X should not go below 0 even for very long words."""
@@ -143,8 +143,8 @@ class TestCalcOrpPositions:
     def test_custom_anchor(self):
         font = FakeFont(10)
         _, _, _, _, orp_x, _ = calc_orp_positions('abc', font, anchor_x=100)
-        # orp_x = 100 - 10//2 = 95
-        assert orp_x == 95
+        # orp_x is now the center anchor point
+        assert orp_x == 100
 
 
 # ---------------------------------------------------------------------------

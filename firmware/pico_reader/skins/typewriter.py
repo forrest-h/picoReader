@@ -111,14 +111,15 @@ class Skin:
         if orp_mode == 'color' and len(word) > 1:
             prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
                 word, self._font)
-            self._word_prefix.anchor_point = (0.0, 1)
+            self._word_prefix.anchor_point = (1.0, 1)
             self._word_prefix.anchored_position = (px, jitter_y)
             self._word_prefix.text = prefix
             self._word_prefix.color = pal['ink']
-            # ORP char gets the dim/accent color
+            self._word_orp.anchor_point = (0.5, 1)
             self._word_orp.anchored_position = (ox, jitter_y)
             self._word_orp.text = orp_char
             self._word_orp.color = pal['dim']
+            self._word_suffix.anchor_point = (0.0, 1)
             self._word_suffix.anchored_position = (sx, jitter_y)
             self._word_suffix.text = suffix
             self._word_suffix.color = pal['ink']
