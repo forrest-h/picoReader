@@ -1,5 +1,6 @@
 from .state import AppState
-from .constants import THEMES, BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN
+from .constants import BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN
+from .skins.default import PALETTES
 from .utils import clean_word
 from .analytics import BookStats, SessionStats
 
@@ -45,7 +46,7 @@ def select_and_play(state, book, disp):
     book_stats.start_session()
     state.book_stats = book_stats
     state.session_stats = SessionStats()
-    disp.apply_theme(THEMES[state.theme_index])
+    disp.set_palette(state.theme_index)
     disp.show_reader_screen()
 
 def goto_reader_toggle(state, book, disp):
@@ -57,14 +58,14 @@ def goto_reader_toggle(state, book, disp):
     disp.show_reader_screen()
 
 def cycle_theme_fwd(state, book, disp):
-    state.theme_index = (state.theme_index + 1) % len(THEMES)
-    disp.apply_theme(THEMES[state.theme_index])
+    state.theme_index = (state.theme_index + 1) % len(PALETTES)
+    disp.set_palette(state.theme_index)
     disp.show_word("picoReader")
     disp.refresh()
 
 def cycle_theme_back(state, book, disp):
-    state.theme_index = (state.theme_index - 1) % len(THEMES)
-    disp.apply_theme(THEMES[state.theme_index])
+    state.theme_index = (state.theme_index - 1) % len(PALETTES)
+    disp.set_palette(state.theme_index)
     disp.show_word("picoReader")
     disp.refresh()
 
