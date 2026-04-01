@@ -232,3 +232,122 @@ class Skin:
     def get_highlight_color(self):
         """Return current palette's border/accent color."""
         return PALETTES[self._palette_index]['border']
+
+    # ----- Menu rendering (RPG inventory style) -----
+
+    def build_menu_group(self, display_width, display_height):
+        """Build an RPG inventory-styled menu group. Returns a displayio.Group."""
+        pal = PALETTES[self._palette_index]
+        group = displayio.Group()
+
+        # [0] dark background
+        bg_bmp = displayio.Bitmap(display_width, display_height, 1)
+        self._menu_bg_palette = displayio.Palette(1)
+        self._menu_bg_palette[0] = pal['bg']
+        group.append(displayio.TileGrid(bg_bmp, pixel_shader=self._menu_bg_palette))
+
+        # [1] title bar label
+        self._menu_title = label.Label(self._smallfont, text='INVENTORY',
+                                       color=pal['border'],
+                                       base_alignment=False)
+        self._menu_title.anchor_point = (0.5, 0.5)
+        self._menu_title.anchored_position = (80, 10)
+        group.append(self._menu_title)
+
+        # [2..4] 3 slot border rects (gold-bordered)
+        # [5..7] 3 slot inner fill rects
+        # [8..10] 3 slot title labels
+        # [11..13] 3 slot detail labels
+        self._menu_slot_borders = []
+        self._menu_slot_fills = []
+        self._menu_slot_titles = []
+        self._menu_slot_details = []
+
+        slot_positions = [(22, 32), (58, 32), (94, 32)]
+        for y, h in slot_positions:
+            border = Rect(6, y, 148, h, fill=pal['border'])
+            group.append(border)
+            self._menu_slot_borders.append(border)
+
+            inner = Rect(8, y + 2, 144, h - 4, fill=pal['bg'])
+            group.append(inner)
+            self._menu_slot_fills.append(inner)
+
+            title_lbl = label.Label(self._smallfont, text='',
+                                    color=pal['text'],
+                                    base_alignment=False)
+            title_lbl.anchor_point = (0.5, 0.5)
+            title_lbl.anchored_position = (80, y + 10)
+            group.append(title_lbl)
+            self._menu_slot_titles.append(title_lbl)
+
+            detail_lbl = label.Label(self._smallfont, text='',
+                                     color=pal['border'],
+                                     base_alignment=False)
+            detail_lbl.anchor_point = (0.5, 0.5)
+            detail_lbl.anchored_position = (80, y + 22)
+            group.append(detail_lbl)
+            self._menu_slot_details.append(detail_lbl)
+
+        self._menu_group = group
+        return group
+
+    def update_menu(self, items, cursor, breadcrumb, book_metadata):
+        """Update the RPG inventory menu with current items and cursor."""
+        pal = PALETTES[self._palette_index]
+
+        # Title bar
+        self._menu_title.text = "- {} -".format(breadcrumb.upper())
+        self._menu_title.color = pal['border']
+
+        # Selected slot fill is brighter, others darker
+        selected_fill = 0x3a2a2a  # slightly brighter than bg
+        normal_fill = pal['bg']
+
+        if not items:
+            for i in range(3):
+                self._menu_slot_borders[i].fill = pal['bg']
+                self._menu_slot_fills[i].fill = pal['bg']
+                self._menu_slot_titles[i].text = ''
+                self._menu_slot_details[i].text = ''
+            self._menu_slot_titles[1].text = '(Empty)'
+            self._menu_slot_titles[1].color = pal['text']
+            return
+
+        total = len(items)
+        if cursor <= 1:
+            window_start = 0
+            highlighted_slot = cursor
+        else:
+            window_start = cursor - 1
+            highlighted_slot = 1
+
+        for slot_idx in range(3):
+            item_idx = window_start + slot_idx
+            is_selected = (slot_idx == highlighted_slot)
+
+            border = self._menu_slot_borders[slot_idx]
+            fill = self._menu_slot_fills[slot_idx]
+            title_lbl = self._menu_slot_titles[slot_idx]
+            detail_lbl = self._menu_slot_details[slot_idx]
+
+            if 0 <= item_idx < total:
+                node = items[item_idx]
+                border.fill = pal['border']
+                fill.fill = selected_fill if is_selected else normal_fill
+                title_lbl.color = pal['text']
+                detail_lbl.color = pal['border']
+
+                if node.book_id is not None:
+                    meta = book_metadata[node.book_id]
+                    title_lbl.text = meta[0]
+                    detail_lbl.text = meta[1]
+                else:
+                    child_count = len(node.children) if node.children else 0
+                    title_lbl.text = node.label
+                    detail_lbl.text = "({})".format(child_count)
+            else:
+                border.fill = pal['bg']
+                fill.fill = pal['bg']
+                title_lbl.text = ''
+                detail_lbl.text = ''

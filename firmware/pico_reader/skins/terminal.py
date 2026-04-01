@@ -185,3 +185,100 @@ class Skin:
     def get_highlight_color(self):
         """Return current palette's phosphor color (used as highlight)."""
         return PALETTES[self._palette_index]['phosphor']
+
+    # ----- Menu rendering (DOS file listing style) -----
+
+    def build_menu_group(self, display_width, display_height):
+        """Build a DOS-styled menu group. Returns a displayio.Group."""
+        pal = PALETTES[self._palette_index]
+        group = displayio.Group()
+
+        # [0] black background
+        bg_bmp = displayio.Bitmap(display_width, display_height, 1)
+        self._menu_bg_palette = displayio.Palette(1)
+        self._menu_bg_palette[0] = 0x000000
+        group.append(displayio.TileGrid(bg_bmp, pixel_shader=self._menu_bg_palette))
+
+        # [1] breadcrumb path label (DOS-style)
+        self._menu_breadcrumb = label.Label(self._smallfont, text='C:\\MENU>',
+                                            color=pal['dim'],
+                                            base_alignment=False)
+        self._menu_breadcrumb.anchor_point = (0.0, 0.0)
+        self._menu_breadcrumb.anchored_position = (2, 2)
+        group.append(self._menu_breadcrumb)
+
+        # [2..4] 3 item labels (line 0, 1, 2)
+        self._menu_item_labels = []
+        for i in range(3):
+            y = 28 + i * 34
+            lbl = label.Label(self._smallfont, text='', color=pal['dim'],
+                              base_alignment=False)
+            lbl.anchor_point = (0.0, 0.0)
+            lbl.anchored_position = (4, y)
+            group.append(lbl)
+            self._menu_item_labels.append(lbl)
+
+        # [5..7] 3 detail labels (subtitle line per slot)
+        self._menu_detail_labels = []
+        for i in range(3):
+            y = 38 + i * 34
+            lbl = label.Label(self._smallfont, text='', color=pal['dim'],
+                              base_alignment=False)
+            lbl.anchor_point = (0.0, 0.0)
+            lbl.anchored_position = (12, y)
+            group.append(lbl)
+            self._menu_detail_labels.append(lbl)
+
+        self._menu_group = group
+        return group
+
+    def update_menu(self, items, cursor, breadcrumb, book_metadata):
+        """Update the DOS menu with current items and cursor."""
+        pal = PALETTES[self._palette_index]
+
+        # Update breadcrumb as DOS path
+        path = breadcrumb.upper().replace(' > ', '\\').replace(' ', '_')
+        self._menu_breadcrumb.text = "C:\\{}> ".format(path)
+        self._menu_breadcrumb.color = pal['dim']
+
+        if not items:
+            for lbl in self._menu_item_labels:
+                lbl.text = ''
+            for lbl in self._menu_detail_labels:
+                lbl.text = ''
+            self._menu_item_labels[1].text = '(Empty)'
+            self._menu_item_labels[1].color = pal['dim']
+            return
+
+        total = len(items)
+        if cursor <= 1:
+            window_start = 0
+            highlighted_slot = cursor
+        else:
+            window_start = cursor - 1
+            highlighted_slot = 1
+
+        for slot_idx in range(3):
+            item_idx = window_start + slot_idx
+            is_selected = (slot_idx == highlighted_slot)
+            item_lbl = self._menu_item_labels[slot_idx]
+            detail_lbl = self._menu_detail_labels[slot_idx]
+
+            if 0 <= item_idx < total:
+                node = items[item_idx]
+                prefix = "> " if is_selected else "  "
+                color = pal['phosphor'] if is_selected else pal['dim']
+                item_lbl.color = color
+                detail_lbl.color = pal['dim']
+
+                if node.book_id is not None:
+                    meta = book_metadata[node.book_id]
+                    item_lbl.text = "{}{}".format(prefix, meta[0])
+                    detail_lbl.text = "  {}".format(meta[1])
+                else:
+                    child_count = len(node.children) if node.children else 0
+                    item_lbl.text = "{}{}/".format(prefix, node.label)
+                    detail_lbl.text = "  ({} items)".format(child_count)
+            else:
+                item_lbl.text = ''
+                detail_lbl.text = ''
