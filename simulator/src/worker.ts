@@ -304,33 +304,16 @@ async def _patched_main():
         # run an async version that yields to the browser event loop
         await _async_main_loop(state, book, disp, keys, encoder)
 
-def _step_forward_robust(book):
-    """Like book.step_forward() but handles consecutive blank lines."""
-    max_blank_skip = 50  # don't skip more than 50 blank lines
-    for _ in range(max_blank_skip):
-        word = book.step_forward()
-        if word is not None:
-            return word
-        # step_forward returned None — might be consecutive blank lines or real EOF
-        # Check if we're actually past the book length
-        if book.line_num >= book.book_len:
-            return None
-        # Try advancing past the blank line
-        book.line_num += 1
-        book.word_idx = 0
-        book._cache_start = -1
-        book._cache = []
-    return None
-
 async def _async_main_loop(state, book, disp, keys, encoder):
     """Async replacement for code.main_loop that yields via JS setTimeout."""
     import asyncio
     from js import Promise, self as _w
 
     last_enc_pos = encoder.position
-    last_word_time = code.time.monotonic()
+    last_word_time = 0.0
     lines_since_save = 0
     last_line = book.line_num
+    prev_line_empty = False
 
     while True:
         now = code.time.monotonic()
@@ -342,6 +325,8 @@ async def _async_main_loop(state, book, disp, keys, encoder):
             if handler:
                 handler(state, book, disp)
                 _state_tracker.send_state()
+            # Update cursor visibility after button handling
+            disp.set_cursor_visible(not state.playing)
 
         # --- Encoder ---
         enc_pos = encoder.position
@@ -355,29 +340,68 @@ async def _async_main_loop(state, book, disp, keys, encoder):
 
         # --- Word display timer ---
         if state.mode == code.AppState.MODE_READER and state.playing:
-            if now - last_word_time >= state.speed:
-                word = _step_forward_robust(book)
+            # Calculate delay: smart pacing or flat rate
+            if state.smart_pacing:
+                word_delay = state._next_word_delay
+            else:
+                word_delay = state.speed
+
+            if now - last_word_time >= word_delay:
+                word = book.step_forward()
                 if word:
                     cleaned = code.clean_word(word)
+
+                    # Detect paragraph start: first word on a line that
+                    # follows an empty line
+                    is_para_start = (book.word_idx == 1
+                                     and book.line_num > 0
+                                     and prev_line_empty)
+
+                    # Pre-compute delay for the NEXT iteration so the
+                    # current word's complexity determines how long it
+                    # stays on screen.
+                    if state.smart_pacing:
+                        ramp = state.get_ramp_factor()
+                        state._next_word_delay = code.calculate_word_delay(
+                            cleaned, state.wpm, is_para_start, ramp)
+                    else:
+                        state._next_word_delay = state.speed
+
+                    # Track whether this line is empty (for next
+                    # paragraph-start detection)
+                    prev_line_empty = (book._get_words(book.line_num) == [])
+
                     if len(cleaned) > 17:
                         for part in cleaned.split('-'):
-                            disp.show_word(part + '-')
+                            disp.show_word(part + '-', state.orp_mode)
                             disp.show_wpm(state.wpm)
+                            disp.tick_animation(state, book)
                             disp.refresh()
                     else:
-                        disp.show_word(cleaned)
+                        disp.show_word(cleaned, state.orp_mode)
                         disp.show_wpm(state.wpm)
+                        disp.tick_animation(state, book)
                         disp.refresh()
 
+                    # Track analytics
+                    if state.book_stats:
+                        state.book_stats.increment_word()
+                    if state.session_stats:
+                        state.session_stats.record_word(state.wpm)
+
+                    # Auto-save and progress update
                     if book.line_num != last_line:
                         lines_since_save += book.line_num - last_line
                         last_line = book.line_num
                         if lines_since_save >= code.SAVE_INTERVAL:
                             book.save_place()
+                            if state.book_stats:
+                                state.book_stats.save()
                             disp.update_progress(book.line_num, book.book_len)
                             disp.refresh()
                             lines_since_save = 0
                 else:
+                    # End of book
                     state.playing = False
                     state.finished = True
                     book.save_place()
