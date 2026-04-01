@@ -13,10 +13,13 @@ def toggle_play(state, book, disp):
         book.save_place()
         disp.reset_progress()
         state.finished = False
-        state.playing = True
+        state.start_playing()
         return
-    book.save_place()
-    state.playing = not state.playing
+    if state.playing:
+        book.save_place()
+        state.playing = False
+    else:
+        state.start_playing()
 
 def goto_menu(state, book, disp):
     if state.mode == AppState.MODE_READER and state.playing:
@@ -35,7 +38,7 @@ def goto_display(state, book, disp):
 
 def select_and_play(state, book, disp):
     state.mode = AppState.MODE_READER
-    state.playing = True
+    state.start_playing()
     state.finished = False
     book.save_backup()
     book_stats = BookStats(book.book)
@@ -47,7 +50,10 @@ def select_and_play(state, book, disp):
 
 def goto_reader_toggle(state, book, disp):
     state.mode = AppState.MODE_READER
-    state.playing = not state.playing
+    if state.playing:
+        state.playing = False
+    else:
+        state.start_playing()
     disp.show_reader_screen()
 
 def cycle_theme_fwd(state, book, disp):

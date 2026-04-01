@@ -1,4 +1,40 @@
+import time
 from .constants import DEFAULT_WPM, DEFAULT_BRIGHTNESS
+
+
+def calculate_word_delay(word, base_wpm, is_paragraph_start, ramp_factor):
+    """Calculate display duration for a word based on complexity multipliers.
+
+    Multipliers stack multiplicatively:
+      - long word (>8 chars): 1.3x
+      - short word (<=3 chars): 0.8x
+      - comma/semicolon/colon ending: 1.5x
+      - sentence end (.!?): 1.8x
+      - paragraph start: 1.4x
+    """
+    effective_wpm = base_wpm * ramp_factor
+    delay = 60.0 / effective_wpm
+    multiplier = 1.0
+
+    stripped = word.rstrip('"\')')
+    if not stripped:
+        return delay
+
+    if len(word) > 8:
+        multiplier *= 1.3
+    elif len(word) <= 3:
+        multiplier *= 0.8
+
+    last_char = stripped[-1]
+    if last_char in '.!?':
+        multiplier *= 1.8
+    elif last_char in ',;:':
+        multiplier *= 1.5
+
+    if is_paragraph_start:
+        multiplier *= 1.4
+
+    return delay * multiplier
 
 
 class AppState:
@@ -16,10 +52,30 @@ class AppState:
         self.theme_index = 0
         self.book_stats = None
         self.session_stats = None
+        self.smart_pacing = False
+        self.play_start_time = 0.0
+        self._next_word_delay = 60.0 / DEFAULT_WPM
         if settings:
             self.theme_index = int(settings.get('palette', '0'))
             self.brightness = int(settings.get('brightness', str(DEFAULT_BRIGHTNESS)))
+            self.smart_pacing = settings.get('smart_pacing', 'off') == 'on'
 
     def set_wpm(self, wpm):
         self.wpm = max(10, wpm)
         self.speed = 60.0 / self.wpm
+
+    def start_playing(self):
+        """Set playing to True and record start time for ramp-up."""
+        self.playing = True
+        self.play_start_time = time.monotonic()
+
+    def get_ramp_factor(self):
+        """Return WPM ramp factor: 0.5 -> 1.0 over 10 seconds.
+
+        When smart_pacing is off, always returns 1.0.
+        """
+        if not self.smart_pacing:
+            return 1.0
+        elapsed = time.monotonic() - self.play_start_time
+        ramp = min(1.0, elapsed / 10.0)
+        return 0.5 + 0.5 * ramp
