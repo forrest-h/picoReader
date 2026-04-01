@@ -82,10 +82,12 @@ def main_loop(state, book, disp, keys, encoder):
                         for part in cleaned.split('-'):
                             disp.show_word(part + '-', state.orp_mode)
                             disp.show_wpm(state.wpm)
+                            disp.tick_animation(state, book)
                             disp.refresh()
                     else:
                         disp.show_word(cleaned, state.orp_mode)
                         disp.show_wpm(state.wpm)
+                        disp.tick_animation(state, book)
                         disp.refresh()
 
                     # Track analytics

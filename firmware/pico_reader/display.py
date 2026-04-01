@@ -4,6 +4,7 @@ from adafruit_display_shapes.rect import Rect
 from .constants import (DISPLAY_WIDTH, DISPLAY_HEIGHT, MENU_TITLE_POS,
     MENU_SLOTS, MENU_SELECT_COLORS, MENU_OTHER_COLORS, MENU_BG)
 from .skins import load_skin
+from .animations import load_animation
 
 
 class Display:
@@ -12,6 +13,7 @@ class Display:
         self.backlight = backlight
         self._font = font
         self._smallfont = smallfont
+        self._animation = None
         self._set_skin(skin_name)
         self._build_menu_group()
 
@@ -79,6 +81,29 @@ class Display:
         """Set cursor visibility if the skin supports it."""
         if hasattr(self.skin, 'set_cursor_visible'):
             self.skin.set_cursor_visible(visible)
+
+    # --- Animation lifecycle ---
+
+    def set_animation(self, name):
+        """Swap the active animation. Remove old elements, add new ones."""
+        # Remove old animation elements (everything past index 7)
+        while len(self.reader_group) > 8:
+            self.reader_group.pop()
+        if self._animation is not None:
+            self._animation.destroy()
+            self._animation = None
+
+        anim = load_animation(name)
+        if anim is not None:
+            elements = anim.build(self)
+            for elem in elements:
+                self.reader_group.append(elem)
+            self._animation = anim
+
+    def tick_animation(self, state, book):
+        """Called after each word display, before refresh."""
+        if self._animation is not None:
+            self._animation.tick(state, book, self)
 
     def show_reader_screen(self):
         self.display.show(self.reader_group)
