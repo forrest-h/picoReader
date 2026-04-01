@@ -1,5 +1,6 @@
 import time
 from .constants import DEFAULT_WPM, DEFAULT_BRIGHTNESS
+from .settings import DEFAULTS
 
 
 def calculate_word_delay(word, base_wpm, is_paragraph_start, ramp_factor):
@@ -60,11 +61,14 @@ class AppState:
         self.menu_state = None  # Set after menu tree is built in main()
         self.orp_mode = None  # None, 'color', or 'bold'
         self.skin_name = 'default'
+        self.font_name = DEFAULTS['font']
+        self.settings = settings if settings else dict(DEFAULTS)
         if settings:
             self.theme_index = int(settings.get('palette', '0'))
             self.brightness = int(settings.get('brightness', str(DEFAULT_BRIGHTNESS)))
             self.smart_pacing = settings.get('smart_pacing', 'off') == 'on'
             self.skin_name = settings.get('skin', 'default')
+            self.font_name = settings.get('font', DEFAULTS['font'])
             orp_val = settings.get('orp', 'off')
             if orp_val == 'color':
                 self.orp_mode = 'color'

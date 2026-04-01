@@ -11,7 +11,7 @@ from .state import AppState, calculate_word_delay
 from .book_reader import BookReader
 from .display import Display
 from .input_handlers import BUTTON_HANDLERS, ENCODER_HANDLERS
-from .utils import parse_book_filename, clean_word
+from .utils import parse_book_filename, clean_word, load_reading_font
 from .settings import load_settings
 from . import menu as menu_mod
 from . import recent
@@ -124,7 +124,8 @@ def main_loop(state, book, disp, keys, encoder):
 def main():
     hw_display, backlight, spi, encoder = init_hardware()
 
-    font = bitmap_font.load_font("fonts/Toronto_14.pcf")
+    settings = load_settings()
+    font = load_reading_font(settings.get('font', 'Toronto_14.pcf'))
     smallfont = bitmap_font.load_font("fonts/Toronto_9.pcf")
 
     books = [x for x in os.listdir("/sd/books/") if x.endswith('.txt')]
@@ -149,7 +150,6 @@ def main():
     metadata = [parse_book_filename(b) for b in books]
     lens = [m[3] for m in metadata]
 
-    settings = load_settings()
     state = AppState(settings=settings)
     book = BookReader(books, metadata, lens)
     book.load_place()

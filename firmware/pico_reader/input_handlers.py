@@ -1,6 +1,6 @@
 from .state import AppState
-from .constants import BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN
-from .utils import clean_word
+from .constants import BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN, AVAILABLE_FONTS
+from .utils import clean_word, load_reading_font
 from .settings import set_setting
 from .analytics import BookStats, SessionStats
 from . import recent
@@ -129,6 +129,22 @@ def brightness_down(state, book, disp):
     state.brightness = max(1, state.brightness - 2)
     disp.set_brightness(state.brightness)
 
+def cycle_font(state, book, disp):
+    current = state.font_name
+    if current in AVAILABLE_FONTS:
+        idx = AVAILABLE_FONTS.index(current)
+    else:
+        idx = 0
+    idx = (idx + 1) % len(AVAILABLE_FONTS)
+    state.font_name = AVAILABLE_FONTS[idx]
+    set_setting(state.settings, 'font', state.font_name)
+    # Load new font and mark display for rebuild on next show_reader_screen()
+    new_font = load_reading_font(state.font_name)
+    disp.set_font(new_font)
+    # Preview: show font name (without extension) in current font
+    disp.show_word(state.font_name.split('.')[0])
+    disp.refresh()
+
 
 # --- Menu mode handlers ---
 
@@ -235,6 +251,12 @@ BUTTON_HANDLERS = {
     (AppState.MODE_READER, BTN_LEFT):   prev_chapter,
     (AppState.MODE_READER, BTN_RIGHT):  next_chapter,
     (AppState.MODE_READER, BTN_DOWN):   enter_jump_mode,
+    # Display mode (theme/brightness/font)
+    (AppState.MODE_DISPLAY, BTN_CENTER): goto_reader_toggle,
+    (AppState.MODE_DISPLAY, BTN_UP):     goto_menu,
+    (AppState.MODE_DISPLAY, BTN_LEFT):   cycle_theme_back,
+    (AppState.MODE_DISPLAY, BTN_RIGHT):  cycle_theme_fwd,
+    (AppState.MODE_DISPLAY, BTN_DOWN):   cycle_font,
     # Menu mode
     (AppState.MODE_MENU, BTN_CENTER): menu_select,
     (AppState.MODE_MENU, BTN_UP):     menu_back,

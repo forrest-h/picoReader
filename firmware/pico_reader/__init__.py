@@ -12,8 +12,9 @@ from .input_handlers import (BUTTON_HANDLERS, ENCODER_HANDLERS,
     menu_next, menu_prev, menu_scroll_down, menu_scroll_up,
     brightness_up, brightness_down,
     prev_chapter, next_chapter, enter_jump_mode,
-    jump_confirm, jump_cancel, jump_adjust_up, jump_adjust_down)
-from .utils import parse_book_filename, clean_word
+    jump_confirm, jump_cancel, jump_adjust_up, jump_adjust_down,
+    cycle_font)
+from .utils import parse_book_filename, clean_word, load_reading_font
 from .settings import load_settings, save_settings, set_setting, DEFAULTS
 from .analytics import BookStats, SessionStats
 from .main import main, main_loop

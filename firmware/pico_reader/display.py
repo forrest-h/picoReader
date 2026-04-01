@@ -14,6 +14,7 @@ class Display:
         self._font = font
         self._smallfont = smallfont
         self._animation = None
+        self._font_dirty = False
         self._set_skin(skin_name)
         self._build_menu_group()
 
@@ -21,6 +22,12 @@ class Display:
         SkinClass = load_skin(skin_name)
         self.skin = SkinClass(self._font, self._smallfont)
         self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+        self._font_dirty = False
+
+    def set_font(self, font):
+        """Set a new reading font. Takes effect on next show_reader_screen()."""
+        self._font = font
+        self._font_dirty = True
 
     def _build_menu_group(self):
         self.menu_group = displayio.Group()
@@ -106,6 +113,12 @@ class Display:
             self._animation.tick(state, book, self)
 
     def show_reader_screen(self):
+        if self._font_dirty:
+            palette_idx = self.skin._palette_index
+            self.skin = self.skin.__class__(self._font, self._smallfont)
+            self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+            self.skin.apply_palette(palette_idx)
+            self._font_dirty = False
         self.display.show(self.reader_group)
         self.display.refresh()
 
