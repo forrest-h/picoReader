@@ -1,4 +1,5 @@
 from .constants import DEFAULT_WPM, DEFAULT_BRIGHTNESS
+from .settings import DEFAULTS
 
 
 class AppState:
@@ -14,9 +15,12 @@ class AppState:
         self.speed = 60.0 / DEFAULT_WPM
         self.brightness = DEFAULT_BRIGHTNESS
         self.theme_index = 0
+        self.font_name = DEFAULTS['font']
+        self.settings = settings if settings else dict(DEFAULTS)
         if settings:
             self.theme_index = int(settings.get('palette', '0'))
             self.brightness = int(settings.get('brightness', str(DEFAULT_BRIGHTNESS)))
+            self.font_name = settings.get('font', DEFAULTS['font'])
 
     def set_wpm(self, wpm):
         self.wpm = max(10, wpm)

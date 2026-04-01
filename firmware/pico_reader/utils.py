@@ -28,3 +28,12 @@ def parse_book_filename(filename):
 
 def clean_word(word):
     return word.replace('\u201c', '"').replace('\u201d', '"').replace('\u2018', "'").replace('\u2019', "'")
+
+
+def load_reading_font(font_name):
+    """Load a PCF font from fonts/ dir. Falls back to Toronto_14.pcf on error."""
+    from adafruit_bitmap_font import bitmap_font
+    try:
+        return bitmap_font.load_font("fonts/{}".format(font_name))
+    except OSError:
+        return bitmap_font.load_font("fonts/Toronto_14.pcf")

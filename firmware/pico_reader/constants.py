@@ -50,3 +50,15 @@ BTN_LEFT   = 2  # GP10 — previous theme (when paused)
 BTN_RIGHT  = 3  # GP8  — next theme (when paused)
 BTN_DOWN   = 4  # GP6  — unused
 PIN_COM = [board.GP12, board.GP7]
+
+# Available 14px PCF reading fonts (in fonts/ directory)
+AVAILABLE_FONTS = [
+    'Toronto_14.pcf',
+    'Aleo-Regular-14.pcf',
+    'Bitter-Regular-14.pcf',
+    'BreeSerif-Regular-14.pcf',
+    'CreteRound-Regular-14.pcf',
+    'IBMPlexSerif-SemiBold-14.pcf',
+    'Merriweather-Regular-14.pcf',
+    'SpecialElite-Regular-14.pcf',
+]
