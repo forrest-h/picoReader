@@ -102,9 +102,13 @@ class TestBuildMenuTree:
         series_node = root.children[3]
         assert len(series_node.children) == 0
 
-    def test_settings_is_empty_stub(self, menu_tree):
+    def test_settings_has_entries(self, menu_tree):
         settings_node = menu_tree.children[5]
-        assert settings_node.children == []
+        assert len(settings_node.children) == 8
+        labels = [n.label for n in settings_node.children]
+        assert "Skin" in labels
+        assert "Brightness" in labels
+        assert "Stats" in labels
 
 
 # --- Navigation tests ---
@@ -182,23 +186,23 @@ class TestMenuState:
         assert len(recent_node.children) == 1
         assert recent_node.children[0].label == "The Martian"
 
-    def test_select_on_empty_category(self, menu_state):
-        # Navigate to Settings (empty stub)
+    def test_select_setting_returns_setting_key(self, menu_state):
+        # Navigate to Settings
         menu_state.cursor = 5  # Settings
         result = menu_state.select()
         # Drills into Settings
         assert result is None
         assert menu_state.current_node.label == "Settings"
-        # Selecting inside empty category
+        # Selecting a setting returns setting:key
         result = menu_state.select()
-        assert result is None
+        assert result == "setting:skin"
 
-    def test_scroll_on_empty_category(self, menu_state):
+    def test_scroll_in_settings(self, menu_state):
         menu_state.cursor = 5  # Settings
-        menu_state.select()  # Drill into empty Settings
-        # Scroll should be a no-op
-        menu_state.scroll(1)
+        menu_state.select()  # Drill into Settings
         assert menu_state.cursor == 0
+        menu_state.scroll(1)
+        assert menu_state.cursor == 1
         menu_state.scroll(-1)
         assert menu_state.cursor == 0
 

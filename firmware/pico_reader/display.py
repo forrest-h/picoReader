@@ -15,21 +15,31 @@ class Display:
         self._smallfont = smallfont
         self._animation = None
         self._font_dirty = False
+        self._skin_menu = False
         self._set_skin(skin_name)
-        self._build_menu_group()
 
     def _set_skin(self, skin_name):
         SkinClass = load_skin(skin_name)
         self.skin = SkinClass(self._font, self._smallfont)
         self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
         self._font_dirty = False
+        self._rebuild_menu_group()
+
+    def _rebuild_menu_group(self):
+        """Rebuild menu group, delegating to skin if it provides menu rendering."""
+        if hasattr(self.skin, 'build_menu_group'):
+            self.menu_group = self.skin.build_menu_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+            self._skin_menu = True
+        else:
+            self._build_default_menu_group()
+            self._skin_menu = False
 
     def set_font(self, font):
         """Set a new reading font. Takes effect on next show_reader_screen()."""
         self._font = font
         self._font_dirty = True
 
-    def _build_menu_group(self):
+    def _build_default_menu_group(self):
         self.menu_group = displayio.Group()
 
         # [0] background
@@ -143,6 +153,14 @@ class Display:
         items, cursor = menu_state.visible_items()
         breadcrumb_text = menu_state.breadcrumb()
 
+        if self._skin_menu:
+            self.skin.update_menu(items, cursor, breadcrumb_text, book_metadata)
+            self.display.show(self.menu_group)
+            self.display.refresh()
+            return
+
+        # --- Default menu rendering ---
+
         # Update title bar
         self.menu_group[1].text = breadcrumb_text
 
@@ -191,6 +209,53 @@ class Display:
                     lbl.text = ''
 
         self.display.show(self.menu_group)
+        self.display.refresh()
+
+    # --- Stats display ---
+
+    def show_stats_screen(self, book_stats, session_stats, total_wordcount, current_wpm):
+        """Show analytics screen with book and session stats."""
+        group = displayio.Group()
+
+        # Background
+        bg_bmp = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
+        bg_palette = displayio.Palette(1)
+        bg_palette[0] = MENU_BG
+        group.append(displayio.TileGrid(bg_bmp, pixel_shader=bg_palette))
+
+        lines = []
+        if book_stats is None:
+            lines.append(("No stats yet", 0xffffff))
+        else:
+            # Book stats section
+            lines.append(("Book Stats", 0xffffff))
+            lines.append(("Words: {}".format(book_stats.words_read), 0xaaaaaa))
+            lines.append(("Sessions: {}".format(book_stats.sessions), 0xaaaaaa))
+            if total_wordcount > 0:
+                pct = book_stats.completion_pct(total_wordcount)
+                lines.append(("Complete: {}%".format(pct), 0xaaaaaa))
+                est = book_stats.estimated_minutes(current_wpm, total_wordcount)
+                lines.append(("~{} min left".format(est), 0xaaaaaa))
+            lines.append(("", 0xaaaaaa))  # blank spacer
+
+            # Session stats section
+            if session_stats is not None:
+                lines.append(("This Session", 0xffffff))
+                avg = session_stats.average_wpm()
+                lines.append(("Words: {}  Avg: {}".format(session_stats.words, avg), 0xaaaaaa))
+                mins = session_stats.reading_time_minutes()
+                lines.append(("Time: {} min".format(mins), 0xaaaaaa))
+
+        y_start = 10
+        y_step = 14
+        for i, (text, color) in enumerate(lines):
+            lbl = label.Label(self._smallfont, text=text, color=color,
+                              base_alignment=True)
+            lbl.anchor_point = (0.5, 0.0)
+            lbl.anchored_position = (DISPLAY_WIDTH // 2, y_start + i * y_step)
+            group.append(lbl)
+
+        self.display.show(group)
         self.display.refresh()
 
     # --- Jump mode display ---

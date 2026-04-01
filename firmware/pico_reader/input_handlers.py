@@ -188,6 +188,14 @@ def menu_select(state, book, disp):
     if result is None:
         # Drilled into a category -- redraw menu
         disp.show_menu_screen(state.menu_state, book.book_metadata)
+    elif isinstance(result, str) and result == "setting:stats":
+        # Stats screen -- enter stats mode directly
+        state.mode = AppState.MODE_STATS
+        total_wc = 0
+        if book.books and book.book_id < len(book.book_metadata):
+            total_wc = book.book_metadata[book.book_id][3]
+        disp.show_stats_screen(state.book_stats, state.session_stats,
+                               total_wc, state.wpm)
     elif isinstance(result, str) and result.startswith("setting:"):
         # Setting leaf -- cycle the value
         setting_key = result[8:]
@@ -314,6 +322,14 @@ def brightness_adjust_down(state, book, disp):
     disp.refresh()
 
 
+# --- Stats mode handlers ---
+
+def stats_dismiss(state, book, disp):
+    """CENTER or UP in stats mode: return to settings menu."""
+    state.mode = AppState.MODE_MENU
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
+
+
 # --- Legacy handlers (kept as aliases for backward compatibility) ---
 
 def select_and_play(state, book, disp):
@@ -353,6 +369,9 @@ BUTTON_HANDLERS = {
     # Brightness mode
     (AppState.MODE_BRIGHTNESS, BTN_CENTER): brightness_confirm,
     (AppState.MODE_BRIGHTNESS, BTN_UP):     brightness_confirm,
+    # Stats mode
+    (AppState.MODE_STATS, BTN_CENTER): stats_dismiss,
+    (AppState.MODE_STATS, BTN_UP):     stats_dismiss,
 }
 
 ENCODER_HANDLERS = {

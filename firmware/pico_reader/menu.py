@@ -1,9 +1,10 @@
 class MenuNode:
     """A single node in the menu tree."""
-    def __init__(self, label, children=None, book_id=None):
+    def __init__(self, label, children=None, book_id=None, setting_key=None):
         self.label = label          # Display text
         self.children = children    # List[MenuNode] or None for leaves
         self.book_id = book_id      # int index into books[] or None for categories
+        self.setting_key = setting_key  # str setting key for actionable settings leaves
 
 
 class MenuState:
@@ -33,13 +34,21 @@ class MenuState:
         self.cursor = (self.cursor + direction) % len(items)
 
     def select(self):
-        """Select current item. Returns book_id if leaf, or None if drilled into category."""
+        """Select current item.
+
+        Returns:
+            int book_id if a book leaf was selected
+            str setting_key if a setting leaf was selected (prefixed with 'setting:')
+            None if drilled into a category
+        """
         items = self.current_node.children
         if not items:
             return None
         selected = items[self.cursor]
         if selected.book_id is not None:
             return selected.book_id
+        if selected.setting_key is not None:
+            return "setting:{}".format(selected.setting_key)
         if selected.children is not None:
             self.path.append(selected)
             self.cursor = 0
@@ -150,8 +159,17 @@ def build_menu_tree(books, book_metadata, recent_filenames):
         genre_nodes.append(MenuNode(genre_name, children=book_nodes))
     genres_node = MenuNode("Genres", children=genre_nodes)
 
-    # Settings stub
-    settings_node = MenuNode("Settings", children=[])
+    # Settings
+    settings_node = MenuNode("Settings", children=[
+        MenuNode("Skin", setting_key="skin"),
+        MenuNode("Color", setting_key="palette"),
+        MenuNode("ORP Mode", setting_key="orp"),
+        MenuNode("Animation", setting_key="animation"),
+        MenuNode("Font", setting_key="font"),
+        MenuNode("Smart Pacing", setting_key="smart_pacing"),
+        MenuNode("Brightness", setting_key="brightness"),
+        MenuNode("Stats", setting_key="stats"),
+    ])
 
     root = MenuNode("picoReader", children=[
         all_books_node,

@@ -43,6 +43,8 @@ class AppState:
     MODE_READER = 1
     MODE_DISPLAY = 2
     MODE_JUMP = 3
+    MODE_BRIGHTNESS = 4
+    MODE_STATS = 5
 
     def __init__(self, settings=None):
         self.mode = self.MODE_MENU

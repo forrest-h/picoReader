@@ -51,6 +51,9 @@ class TestAppState:
         s = AppState()
         assert s.jump_pct == 0
 
+    def test_mode_stats_constant(self):
+        assert AppState.MODE_STATS == 5
+
     def test_menu_state_default(self):
         s = AppState()
         assert s.menu_state is None
