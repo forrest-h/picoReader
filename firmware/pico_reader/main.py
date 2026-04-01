@@ -7,7 +7,7 @@ from adafruit_bitmap_font import bitmap_font
 from .constants import (PIN_BUTTONS, SAVE_INTERVAL, DISPLAY_WIDTH, DISPLAY_HEIGHT,
     WORD_CENTER, DEFAULT_WPM)
 from .hardware import init_hardware
-from .state import AppState
+from .state import AppState, calculate_word_delay
 from .book_reader import BookReader
 from .display import Display
 from .input_handlers import BUTTON_HANDLERS, ENCODER_HANDLERS
@@ -20,6 +20,7 @@ def main_loop(state, book, disp, keys, encoder):
     last_word_time = 0.0
     lines_since_save = 0
     last_line = book.line_num
+    prev_line_empty = False
 
     while True:
         now = time.monotonic()
@@ -42,10 +43,37 @@ def main_loop(state, book, disp, keys, encoder):
 
         # --- Word display timer ---
         if state.mode == AppState.MODE_READER and state.playing:
-            if now - last_word_time >= state.speed:
+            # Calculate delay: smart pacing or flat rate
+            if state.smart_pacing:
+                word_delay = state._next_word_delay
+            else:
+                word_delay = state.speed
+
+            if now - last_word_time >= word_delay:
                 word = book.step_forward()
                 if word:
                     cleaned = clean_word(word)
+
+                    # Detect paragraph start: first word on a line that
+                    # follows an empty line
+                    is_para_start = (book.word_idx == 1
+                                     and book.line_num > 0
+                                     and prev_line_empty)
+
+                    # Pre-compute delay for the NEXT iteration so the
+                    # current word's complexity determines how long it
+                    # stays on screen.
+                    if state.smart_pacing:
+                        ramp = state.get_ramp_factor()
+                        state._next_word_delay = calculate_word_delay(
+                            cleaned, state.wpm, is_para_start, ramp)
+                    else:
+                        state._next_word_delay = state.speed
+
+                    # Track whether this line is empty (for next
+                    # paragraph-start detection)
+                    prev_line_empty = (book._get_words(book.line_num) == [])
+
                     if len(cleaned) > 17:
                         for part in cleaned.split('-'):
                             disp.show_word(part + '-')
