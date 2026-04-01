@@ -30,6 +30,8 @@ def main_loop(state, book, disp, keys, encoder):
             handler = BUTTON_HANDLERS.get((state.mode, event.key_number))
             if handler:
                 handler(state, book, disp)
+            # Update cursor visibility after button handling
+            disp.set_cursor_visible(not state.playing)
 
         # --- Encoder ---
         enc_pos = encoder.position
@@ -48,11 +50,11 @@ def main_loop(state, book, disp, keys, encoder):
                     cleaned = clean_word(word)
                     if len(cleaned) > 17:
                         for part in cleaned.split('-'):
-                            disp.show_word(part + '-')
+                            disp.show_word(part + '-', state.orp_mode)
                             disp.show_wpm(state.wpm)
                             disp.refresh()
                     else:
-                        disp.show_word(cleaned)
+                        disp.show_word(cleaned, state.orp_mode)
                         disp.show_wpm(state.wpm)
                         disp.refresh()
 
@@ -111,7 +113,8 @@ def main():
     state = AppState(settings=settings)
     book = BookReader(books, metadata, lens)
     book.load_place()
-    disp = Display(hw_display, backlight, font, smallfont)
+    disp = Display(hw_display, backlight, font, smallfont,
+                   skin_name=state.skin_name)
     disp.set_brightness(state.brightness)
     disp.show_menu_screen(metadata, 0, len(books))
 
