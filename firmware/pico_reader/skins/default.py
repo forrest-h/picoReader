@@ -1,6 +1,7 @@
 import displayio
 from adafruit_display_text import label
 from adafruit_display_shapes.rect import Rect
+from ..orp import calc_orp_positions, calc_bold_split
 
 # BGR format (https://wamingo.net/rgbbgr/)
 PALETTES = [
@@ -23,7 +24,8 @@ DEFAULT_WPM = 200
 class Skin:
     """Default skin -- preserves the exact original picoReader layout.
 
-    Group indices: 0=bg, 1=word, 2-5=guides, 6=progress, 7=wpm.
+    Group indices: 0=bg, 1=word_prefix, 2=word_orp, 3=word_suffix,
+                   4-7=guides, 8=progress, 9=wpm.
     """
 
     PALETTES = PALETTES
@@ -35,7 +37,9 @@ class Skin:
         self._last_progress_width = 0
         # These are set by build_group()
         self._bg_palette = None
-        self._word_label = None
+        self._word_prefix = None
+        self._word_orp = None
+        self._word_suffix = None
         self._guides = None
         self._progress_bmp = None
         self._progress_palette = None
@@ -54,21 +58,35 @@ class Skin:
         self._bg_palette[0] = pal['bg']
         group.append(displayio.TileGrid(bg_bmp, pixel_shader=self._bg_palette))
 
-        # [1] word label
-        self._word_label = label.Label(self._font, text="{:^30}".format(''),
-                                       color=pal['text'], base_alignment=False)
-        self._word_label.anchor_point = (0.5, 1)
-        self._word_label.anchored_position = WORD_CENTER
-        group.append(self._word_label)
+        # [1] word prefix label (for ORP mode, or full word in normal mode)
+        self._word_prefix = label.Label(self._font, text="{:^30}".format(''),
+                                        color=pal['text'], base_alignment=False)
+        self._word_prefix.anchor_point = (0.5, 1)
+        self._word_prefix.anchored_position = WORD_CENTER
+        group.append(self._word_prefix)
 
-        # [2-5] guide rects
+        # [2] ORP highlight character label
+        self._word_orp = label.Label(self._font, text='',
+                                     color=pal['highlight'], base_alignment=False)
+        self._word_orp.anchor_point = (0.0, 1)
+        self._word_orp.anchored_position = (80, 70)
+        group.append(self._word_orp)
+
+        # [3] word suffix label
+        self._word_suffix = label.Label(self._font, text='',
+                                        color=pal['text'], base_alignment=False)
+        self._word_suffix.anchor_point = (0.0, 1)
+        self._word_suffix.anchored_position = (90, 70)
+        group.append(self._word_suffix)
+
+        # [4-7] guide rects
         self._guides = []
         for x, y, w, h in GUIDE_RECTS:
             r = Rect(x, y, w, h, fill=pal['highlight'])
             self._guides.append(r)
             group.append(r)
 
-        # [6] progress bar -- Bitmap so width is mutable
+        # [8] progress bar -- Bitmap so width is mutable
         self._progress_bmp = displayio.Bitmap(display_width, 2, 2)
         self._progress_palette = displayio.Palette(2)
         self._progress_palette[0] = pal['bg']
@@ -76,7 +94,7 @@ class Skin:
         group.append(
             displayio.TileGrid(self._progress_bmp, pixel_shader=self._progress_palette))
 
-        # [7] WPM label
+        # [9] WPM label
         self._wpm_label = label.Label(self._smallfont, text=str(DEFAULT_WPM),
                                       color=pal['wpm'], base_alignment=False)
         self._wpm_label.anchor_point = (0.0, 1.0)
@@ -87,8 +105,40 @@ class Skin:
         return group
 
     def show_word(self, word, orp_mode=None):
-        """Update the word display."""
-        self._word_label.text = "{:^30}".format(word)
+        """Update the word display.
+
+        orp_mode: None, 'color', or 'bold'.
+        """
+        if orp_mode == 'color' and len(word) > 1:
+            prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
+                word, self._font)
+            self._word_prefix.anchor_point = (0.0, 1)
+            self._word_prefix.anchored_position = (px, 70)
+            self._word_prefix.text = prefix
+            self._word_prefix.color = PALETTES[self._palette_index]['text']
+            self._word_orp.anchored_position = (ox, 70)
+            self._word_orp.text = orp_char
+            self._word_orp.color = PALETTES[self._palette_index]['highlight']
+            self._word_suffix.anchored_position = (sx, 70)
+            self._word_suffix.text = suffix
+            self._word_suffix.color = PALETTES[self._palette_index]['text']
+        elif orp_mode == 'bold' and len(word) > 1:
+            bold, fade = calc_bold_split(word)
+            self._word_prefix.anchor_point = (0.5, 1)
+            self._word_prefix.anchored_position = WORD_CENTER
+            self._word_prefix.text = "{:^30}".format(word)
+            self._word_prefix.color = PALETTES[self._palette_index]['text']
+            # Use ORP label for bold portion overlay (positioned at start)
+            self._word_orp.text = ''
+            self._word_suffix.text = ''
+        else:
+            # Normal mode -- single centered label
+            self._word_prefix.anchor_point = (0.5, 1)
+            self._word_prefix.anchored_position = WORD_CENTER
+            self._word_prefix.text = "{:^30}".format(word)
+            self._word_prefix.color = PALETTES[self._palette_index]['text']
+            self._word_orp.text = ''
+            self._word_suffix.text = ''
 
     def show_wpm(self, wpm):
         """Update WPM indicator."""
@@ -121,7 +171,9 @@ class Skin:
         self._palette_index = palette_index
         pal = PALETTES[palette_index]
         self._bg_palette[0] = pal['bg']
-        self._word_label.color = pal['text']
+        self._word_prefix.color = pal['text']
+        self._word_orp.color = pal['highlight']
+        self._word_suffix.color = pal['text']
         self._wpm_label.color = pal['wpm']
         for g in self._guides:
             g.fill = pal['highlight']

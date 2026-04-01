@@ -75,6 +75,11 @@ class Display:
         """Switch to a different skin."""
         self._set_skin(skin_name)
 
+    def set_cursor_visible(self, visible):
+        """Set cursor visibility if the skin supports it."""
+        if hasattr(self.skin, 'set_cursor_visible'):
+            self.skin.set_cursor_visible(visible)
+
     def show_reader_screen(self):
         self.display.show(self.reader_group)
         self.display.refresh()

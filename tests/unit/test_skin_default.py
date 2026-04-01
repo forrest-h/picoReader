@@ -10,9 +10,18 @@ from pico_reader.skins.default import Skin, PALETTES
 # Helpers
 # ---------------------------------------------------------------------------
 
+class FakeGlyph:
+    def __init__(self, shift_x=8):
+        self.shift_x = shift_x
+
+
 class FakeFont:
-    """Minimal font stand-in for label.Label."""
-    pass
+    """Minimal font stand-in for label.Label with get_glyph for ORP."""
+    def __init__(self):
+        self._glyph = FakeGlyph(8)
+
+    def get_glyph(self, codepoint):
+        return self._glyph
 
 
 def _make_skin():
@@ -40,6 +49,9 @@ class TestSkinRegistry:
 
 # ---------------------------------------------------------------------------
 # Default skin: build_group
+#
+# Group indices: 0=bg, 1=word_prefix, 2=word_orp, 3=word_suffix,
+#                4-7=guides, 8=progress, 9=wpm.
 # ---------------------------------------------------------------------------
 
 class TestBuildGroup:
@@ -48,10 +60,10 @@ class TestBuildGroup:
         group = skin.build_group(160, 128)
         assert isinstance(group, displayio.Group)
 
-    def test_group_has_8_children(self):
+    def test_group_has_10_children(self):
         skin = _make_skin()
         group = skin.build_group(160, 128)
-        assert len(group) == 8
+        assert len(group) == 10
 
     def test_index_0_is_background_tilegrid(self):
         skin = _make_skin()
@@ -61,31 +73,43 @@ class TestBuildGroup:
         assert child.bitmap.width == 160
         assert child.bitmap.height == 128
 
-    def test_index_1_is_word_label(self):
+    def test_index_1_is_word_prefix_label(self):
         skin = _make_skin()
         group = skin.build_group(160, 128)
         child = group[1]
         assert isinstance(child, label.Label)
 
-    def test_indices_2_to_5_are_guide_rects(self):
+    def test_index_2_is_orp_label(self):
+        skin = _make_skin()
+        group = skin.build_group(160, 128)
+        child = group[2]
+        assert isinstance(child, label.Label)
+
+    def test_index_3_is_suffix_label(self):
+        skin = _make_skin()
+        group = skin.build_group(160, 128)
+        child = group[3]
+        assert isinstance(child, label.Label)
+
+    def test_indices_4_to_7_are_guide_rects(self):
         skin = _make_skin()
         group = skin.build_group(160, 128)
         from adafruit_display_shapes.rect import Rect
-        for i in range(2, 6):
+        for i in range(4, 8):
             assert isinstance(group[i], Rect)
 
-    def test_index_6_is_progress_tilegrid(self):
+    def test_index_8_is_progress_tilegrid(self):
         skin = _make_skin()
         group = skin.build_group(160, 128)
-        child = group[6]
+        child = group[8]
         assert isinstance(child, displayio.TileGrid)
         assert child.bitmap.width == 160
         assert child.bitmap.height == 2
 
-    def test_index_7_is_wpm_label(self):
+    def test_index_9_is_wpm_label(self):
         skin = _make_skin()
         group = skin.build_group(160, 128)
-        child = group[7]
+        child = group[9]
         assert isinstance(child, label.Label)
 
 
@@ -110,7 +134,7 @@ class TestApplyPalette:
         skin = _make_skin()
         skin.build_group(160, 128)
         skin.apply_palette(3)  # Crimson
-        assert skin._word_label.color == PALETTES[3]['text']
+        assert skin._word_prefix.color == PALETTES[3]['text']
 
     def test_palette_changes_wpm_color(self):
         skin = _make_skin()
@@ -156,20 +180,42 @@ class TestShowWord:
         skin = _make_skin()
         skin.build_group(160, 128)
         skin.show_word("hello")
-        assert "hello" in skin._word_label.text
+        assert "hello" in skin._word_prefix.text
 
     def test_centers_text(self):
         skin = _make_skin()
         skin.build_group(160, 128)
         skin.show_word("hi")
         # 30-char centered
-        assert len(skin._word_label.text) == 30
+        assert len(skin._word_prefix.text) == 30
 
     def test_empty_word(self):
         skin = _make_skin()
         skin.build_group(160, 128)
         skin.show_word("")
-        assert len(skin._word_label.text) == 30
+        assert len(skin._word_prefix.text) == 30
+
+    def test_orp_color_mode(self):
+        skin = _make_skin()
+        skin.build_group(160, 128)
+        skin.show_word("hello", orp_mode='color')
+        assert skin._word_orp.text == 'e'
+        assert skin._word_prefix.text == 'h'
+        assert skin._word_suffix.text == 'llo'
+
+    def test_orp_bold_mode(self):
+        skin = _make_skin()
+        skin.build_group(160, 128)
+        skin.show_word("hello", orp_mode='bold')
+        assert "hello" in skin._word_prefix.text
+
+    def test_orp_clears_on_normal(self):
+        skin = _make_skin()
+        skin.build_group(160, 128)
+        skin.show_word("hello", orp_mode='color')
+        skin.show_word("world")
+        assert skin._word_orp.text == ''
+        assert skin._word_suffix.text == ''
 
 
 # ---------------------------------------------------------------------------

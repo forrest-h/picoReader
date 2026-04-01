@@ -1,9 +1,12 @@
 from .state import AppState
 from .constants import BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN
-from .skins.default import PALETTES
 from .utils import clean_word
+from .settings import set_setting
 from .analytics import BookStats, SessionStats
 from . import recent
+
+# ORP mode cycle: off -> color -> bold -> off
+ORP_MODES = [None, 'color', 'bold']
 
 
 # --- Reader mode handlers ---
@@ -72,7 +75,7 @@ def wpm_up_or_step_fwd(state, book, disp):
     else:
         word = book.step_forward()
         if word:
-            disp.show_word(clean_word(word))
+            disp.show_word(clean_word(word), state.orp_mode)
             disp.show_wpm(state.wpm)
             disp.refresh()
             book.save_place()
@@ -83,7 +86,7 @@ def wpm_down_or_step_back(state, book, disp):
     else:
         word = book.step_backward()
         if word:
-            disp.show_word(clean_word(word))
+            disp.show_word(clean_word(word), state.orp_mode)
             disp.show_wpm(state.wpm)
             disp.refresh()
             book.save_place()
@@ -105,13 +108,15 @@ def goto_reader_toggle(state, book, disp):
     disp.show_reader_screen()
 
 def cycle_theme_fwd(state, book, disp):
-    state.theme_index = (state.theme_index + 1) % len(PALETTES)
+    palette_count = len(disp.skin.PALETTES)
+    state.theme_index = (state.theme_index + 1) % palette_count
     disp.set_palette(state.theme_index)
     disp.show_word("picoReader")
     disp.refresh()
 
 def cycle_theme_back(state, book, disp):
-    state.theme_index = (state.theme_index - 1) % len(PALETTES)
+    palette_count = len(disp.skin.PALETTES)
+    state.theme_index = (state.theme_index - 1) % palette_count
     disp.set_palette(state.theme_index)
     disp.show_word("picoReader")
     disp.refresh()
