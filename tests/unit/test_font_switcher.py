@@ -272,12 +272,3 @@ class TestDisplayFontIntegration:
 
 
 # ---------------------------------------------------------------------------
-# Dispatch table wiring
-# ---------------------------------------------------------------------------
-
-class TestDispatchWiring:
-    def test_btn_down_display_mode_is_cycle_font(self):
-        from pico_reader.input_handlers import BUTTON_HANDLERS
-        from pico_reader.constants import BTN_DOWN
-        handler = BUTTON_HANDLERS.get((AppState.MODE_DISPLAY, BTN_DOWN))
-        assert handler is cycle_font

@@ -3,10 +3,13 @@ from .constants import BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN, AVAILA
 from .utils import clean_word, load_reading_font
 from .settings import set_setting
 from .analytics import BookStats, SessionStats
+from .skins import SKIN_NAMES
+from .animations import ANIMATION_NAMES
 from . import recent
 
 # ORP mode cycle: off -> color -> bold -> off
 ORP_MODES = [None, 'color', 'bold']
+ORP_NAMES = ['off', 'color', 'bold']
 
 
 # --- Reader mode handlers ---
@@ -92,20 +95,7 @@ def wpm_down_or_step_back(state, book, disp):
             book.save_place()
 
 
-# --- Display mode handlers (kept for backward compat, used by Phase 3 Settings) ---
-
-def goto_display(state, book, disp):
-    if state.playing:
-        return
-    book.save_place()
-    state.mode = AppState.MODE_DISPLAY
-    disp.show_word("picoReader")
-    disp.refresh()
-
-def goto_reader_toggle(state, book, disp):
-    state.mode = AppState.MODE_READER
-    state.playing = not state.playing
-    disp.show_reader_screen()
+# --- Settings-related handlers (used by Settings menu cycling) ---
 
 def cycle_theme_fwd(state, book, disp):
     palette_count = len(disp.skin.PALETTES)
@@ -148,11 +138,68 @@ def cycle_font(state, book, disp):
 
 # --- Menu mode handlers ---
 
+def _cycle_setting(state, disp, key):
+    """Cycle a setting value and update display/state accordingly."""
+    if key == 'skin':
+        idx = SKIN_NAMES.index(state.skin_name) if state.skin_name in SKIN_NAMES else 0
+        idx = (idx + 1) % len(SKIN_NAMES)
+        state.skin_name = SKIN_NAMES[idx]
+        set_setting(state.settings, 'skin', state.skin_name)
+        state.theme_index = 0
+        set_setting(state.settings, 'palette', '0')
+        disp.set_skin(state.skin_name)
+        disp.set_palette(0)
+    elif key == 'palette':
+        palette_count = len(disp.skin.PALETTES)
+        state.theme_index = (state.theme_index + 1) % palette_count
+        set_setting(state.settings, 'palette', str(state.theme_index))
+        disp.set_palette(state.theme_index)
+    elif key == 'orp':
+        idx = ORP_NAMES.index(ORP_NAMES[0] if state.orp_mode is None else state.orp_mode)
+        idx = (idx + 1) % len(ORP_NAMES)
+        state.orp_mode = ORP_MODES[idx]
+        set_setting(state.settings, 'orp', ORP_NAMES[idx])
+    elif key == 'animation':
+        from .animations import load_animation
+        curr = state.settings.get('animation', 'off')
+        idx = ANIMATION_NAMES.index(curr) if curr in ANIMATION_NAMES else 0
+        idx = (idx + 1) % len(ANIMATION_NAMES)
+        name = ANIMATION_NAMES[idx]
+        set_setting(state.settings, 'animation', name)
+        disp.set_animation(name)
+    elif key == 'font':
+        cycle_font(state, book=None, disp=disp)
+        return
+    elif key == 'smart_pacing':
+        state.smart_pacing = not state.smart_pacing
+        set_setting(state.settings, 'smart_pacing', 'on' if state.smart_pacing else 'off')
+    elif key == 'brightness':
+        # Enter brightness adjustment mode
+        state.mode = AppState.MODE_BRIGHTNESS
+        disp.show_word("Bright: {}%".format(state.brightness))
+        disp.show_wpm("scroll to adjust")
+        disp.show_reader_screen()
+        return  # Skip menu redraw
+
+
 def menu_select(state, book, disp):
-    """CENTER in menu: drill into category or select book."""
-    book_id = state.menu_state.select()
-    if book_id is not None:
+    """CENTER in menu: drill into category, select book, or cycle setting."""
+    result = state.menu_state.select()
+    if result is None:
+        # Drilled into a category -- redraw menu
+        disp.show_menu_screen(state.menu_state, book.book_metadata)
+    elif isinstance(result, str) and result.startswith("setting:"):
+        # Setting leaf -- cycle the value
+        setting_key = result[8:]
+        _cycle_setting(state, disp, setting_key)
+        # Update the menu item label to show current value
+        items = state.menu_state.current_node.children
+        node = items[state.menu_state.cursor]
+        node.label = _setting_label(state, disp, setting_key)
+        disp.show_menu_screen(state.menu_state, book.book_metadata)
+    else:
         # A book was selected -- start reading
+        book_id = result
         book.select_book(book_id)
         recent.update_recent(book.book)
         state.menu_state.refresh_recent(book.books, book.book_metadata, recent.load_recent())
@@ -166,9 +213,27 @@ def menu_select(state, book, disp):
         state.session_stats = SessionStats()
         disp.set_palette(state.theme_index)
         disp.show_reader_screen()
-    else:
-        # Drilled into a category -- redraw menu
-        disp.show_menu_screen(state.menu_state, book.book_metadata)
+
+
+def _setting_label(state, disp, key):
+    """Return display label for a setting showing its current value."""
+    if key == 'skin':
+        return "Skin: {}".format(state.skin_name)
+    elif key == 'palette':
+        p = disp.skin.PALETTES[state.theme_index]
+        name = p.get('name', str(state.theme_index))
+        return "Color: {}".format(name)
+    elif key == 'orp':
+        return "ORP: {}".format('off' if state.orp_mode is None else state.orp_mode)
+    elif key == 'animation':
+        return "Animation: {}".format(state.settings.get('animation', 'off'))
+    elif key == 'font':
+        return "Font: {}".format(state.font_name.split('.')[0])
+    elif key == 'smart_pacing':
+        return "Smart Pace: {}".format('on' if state.smart_pacing else 'off')
+    elif key == 'brightness':
+        return "Bright: {}%".format(state.brightness)
+    return key
 
 def menu_back(state, book, disp):
     """UP in menu: go back one level."""
@@ -221,6 +286,34 @@ def jump_adjust_down(state, book, disp):
     disp.show_jump_screen(state.jump_pct)
 
 
+# --- Brightness mode handlers ---
+
+def brightness_confirm(state, book, disp):
+    """CENTER in brightness mode: confirm and return to settings menu."""
+    # Update the menu label to show current value
+    items = state.menu_state.current_node.children
+    node = items[state.menu_state.cursor]
+    node.label = _setting_label(state, disp, 'brightness')
+    state.mode = AppState.MODE_MENU
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
+
+def brightness_adjust_up(state, book, disp):
+    """Encoder CW in brightness mode: increase by 2%."""
+    state.brightness = min(100, state.brightness + 2)
+    set_setting(state.settings, 'brightness', str(state.brightness))
+    disp.set_brightness(state.brightness)
+    disp.show_word("Bright: {}%".format(state.brightness))
+    disp.refresh()
+
+def brightness_adjust_down(state, book, disp):
+    """Encoder CCW in brightness mode: decrease by 2%."""
+    state.brightness = max(1, state.brightness - 2)
+    set_setting(state.settings, 'brightness', str(state.brightness))
+    disp.set_brightness(state.brightness)
+    disp.show_word("Bright: {}%".format(state.brightness))
+    disp.refresh()
+
+
 # --- Legacy handlers (kept as aliases for backward compatibility) ---
 
 def select_and_play(state, book, disp):
@@ -251,25 +344,24 @@ BUTTON_HANDLERS = {
     (AppState.MODE_READER, BTN_LEFT):   prev_chapter,
     (AppState.MODE_READER, BTN_RIGHT):  next_chapter,
     (AppState.MODE_READER, BTN_DOWN):   enter_jump_mode,
-    # Display mode (theme/brightness/font)
-    (AppState.MODE_DISPLAY, BTN_CENTER): goto_reader_toggle,
-    (AppState.MODE_DISPLAY, BTN_UP):     goto_menu,
-    (AppState.MODE_DISPLAY, BTN_LEFT):   cycle_theme_back,
-    (AppState.MODE_DISPLAY, BTN_RIGHT):  cycle_theme_fwd,
-    (AppState.MODE_DISPLAY, BTN_DOWN):   cycle_font,
     # Menu mode
     (AppState.MODE_MENU, BTN_CENTER): menu_select,
     (AppState.MODE_MENU, BTN_UP):     menu_back,
     # Jump mode
     (AppState.MODE_JUMP, BTN_CENTER): jump_confirm,
     (AppState.MODE_JUMP, BTN_UP):     jump_cancel,
+    # Brightness mode
+    (AppState.MODE_BRIGHTNESS, BTN_CENTER): brightness_confirm,
+    (AppState.MODE_BRIGHTNESS, BTN_UP):     brightness_confirm,
 }
 
 ENCODER_HANDLERS = {
-    (AppState.MODE_READER, 1):  wpm_up_or_step_fwd,
-    (AppState.MODE_READER, -1): wpm_down_or_step_back,
-    (AppState.MODE_MENU, 1):    menu_scroll_down,
-    (AppState.MODE_MENU, -1):   menu_scroll_up,
-    (AppState.MODE_JUMP, 1):    jump_adjust_up,
-    (AppState.MODE_JUMP, -1):   jump_adjust_down,
+    (AppState.MODE_READER, 1):      wpm_up_or_step_fwd,
+    (AppState.MODE_READER, -1):     wpm_down_or_step_back,
+    (AppState.MODE_MENU, 1):        menu_scroll_down,
+    (AppState.MODE_MENU, -1):       menu_scroll_up,
+    (AppState.MODE_JUMP, 1):        jump_adjust_up,
+    (AppState.MODE_JUMP, -1):       jump_adjust_down,
+    (AppState.MODE_BRIGHTNESS, 1):  brightness_adjust_up,
+    (AppState.MODE_BRIGHTNESS, -1): brightness_adjust_down,
 }

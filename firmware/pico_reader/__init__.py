@@ -5,9 +5,9 @@ from .book_reader import BookReader
 from .display import Display
 from .skins import SKIN_NAMES, load_skin
 from .input_handlers import (BUTTON_HANDLERS, ENCODER_HANDLERS,
-    toggle_play, goto_menu, goto_display,
+    toggle_play, goto_menu,
     select_and_play, menu_select, menu_back,
-    goto_reader_toggle, cycle_theme_fwd, cycle_theme_back,
+    cycle_theme_fwd, cycle_theme_back,
     wpm_up_or_step_fwd, wpm_down_or_step_back,
     menu_next, menu_prev, menu_scroll_down, menu_scroll_up,
     brightness_up, brightness_down,
