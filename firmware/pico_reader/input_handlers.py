@@ -1,6 +1,7 @@
 from .state import AppState
 from .constants import THEMES, BTN_CENTER, BTN_UP, BTN_LEFT, BTN_RIGHT, BTN_DOWN
 from .utils import clean_word
+from .analytics import BookStats, SessionStats
 
 
 def toggle_play(state, book, disp):
@@ -37,6 +38,10 @@ def select_and_play(state, book, disp):
     state.playing = True
     state.finished = False
     book.save_backup()
+    book_stats = BookStats(book.book)
+    book_stats.start_session()
+    state.book_stats = book_stats
+    state.session_stats = SessionStats()
     disp.apply_theme(THEMES[state.theme_index])
     disp.show_reader_screen()
 

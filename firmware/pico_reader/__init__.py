@@ -10,6 +10,7 @@ from .input_handlers import (BUTTON_HANDLERS, ENCODER_HANDLERS,
     menu_next, menu_prev, brightness_up, brightness_down)
 from .utils import parse_book_filename, clean_word
 from .settings import load_settings, save_settings, set_setting, DEFAULTS
+from .analytics import BookStats, SessionStats
 from .main import main, main_loop
 
 # Re-export stdlib modules that worker.ts accesses as code.X

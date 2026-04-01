@@ -14,6 +14,8 @@ class AppState:
         self.speed = 60.0 / DEFAULT_WPM
         self.brightness = DEFAULT_BRIGHTNESS
         self.theme_index = 0
+        self.book_stats = None
+        self.session_stats = None
         if settings:
             self.theme_index = int(settings.get('palette', '0'))
             self.brightness = int(settings.get('brightness', str(DEFAULT_BRIGHTNESS)))

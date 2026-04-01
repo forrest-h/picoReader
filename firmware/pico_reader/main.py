@@ -56,12 +56,20 @@ def main_loop(state, book, disp, keys, encoder):
                         disp.show_wpm(state.wpm)
                         disp.refresh()
 
+                    # Track analytics
+                    if state.book_stats:
+                        state.book_stats.increment_word()
+                    if state.session_stats:
+                        state.session_stats.record_word(state.wpm)
+
                     # Auto-save and progress update
                     if book.line_num != last_line:
                         lines_since_save += book.line_num - last_line
                         last_line = book.line_num
                         if lines_since_save >= SAVE_INTERVAL:
                             book.save_place()
+                            if state.book_stats:
+                                state.book_stats.save()
                             disp.update_progress(book.line_num, book.book_len)
                             disp.refresh()
                             lines_since_save = 0
