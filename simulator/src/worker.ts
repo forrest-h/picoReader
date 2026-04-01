@@ -177,6 +177,36 @@ sys.stderr = _ConsoleWriter()
   const strippedCode = code.replace(/^main\(\)\s*$/m, '# main() — called by simulator wrapper');
   pyodide.FS.writeFile('/app/code.py', strippedCode);
 
+  // Fetch pico_reader module files
+  const picoModules = [
+    '__init__',
+    'constants',
+    'hardware',
+    'state',
+    'book_reader',
+    'display',
+    'input_handlers',
+    'utils',
+    'main',
+  ];
+
+  pyodide.FS.mkdirTree('/app/pico_reader');
+
+  for (const mod of picoModules) {
+    try {
+      const resp = await fetch(`../firmware/pico_reader/${mod}.py`);
+      if (resp.ok) {
+        const code = await resp.text();
+        pyodide.FS.writeFile(`/app/pico_reader/${mod}.py`, code);
+      }
+    } catch {
+      _self.postMessage({
+        type: 'console',
+        message: `Failed to load module: pico_reader/${mod}.py`,
+      });
+    }
+  }
+
   // Run with a wrapper that hooks into the application objects for state tracking
   // and save file mirroring
   try {
