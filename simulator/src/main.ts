@@ -40,6 +40,10 @@ export interface StateMessage {
   bookTitle?: string;
   bookAuthor?: string;
   bookLen?: number;
+  menuBreadcrumb?: string;
+  menuCursor?: number;
+  menuDepth?: number;
+  [key: string]: any;
 }
 
 export interface SaveMessage {
@@ -116,6 +120,11 @@ class App {
   private hardwareUI!: HardwareUI;
   private inspector!: StateInspector;
 
+  // Test observability fields
+  private _lastState: StateMessage | null = null;
+  private _consoleLog: string[] = [];
+  private _ready = false;
+
   async start() {
     const canvas = document.getElementById('lcd') as HTMLCanvasElement;
     this.renderer = new Renderer(canvas);
@@ -126,6 +135,31 @@ class App {
     );
 
     this.startWorker();
+  }
+
+  /** Send a button press to the worker. Called by tests via page.evaluate(). */
+  pressButton(keyNumber: number) {
+    this.sendToWorker({ type: 'button', keyNumber, pressed: true });
+  }
+
+  /** Send an encoder position change to the worker. */
+  setEncoderPosition(position: number) {
+    this.sendToWorker({ type: 'encoder', position });
+  }
+
+  /** Get the latest state snapshot received from the worker. */
+  getLastState(): StateMessage | null {
+    return this._lastState;
+  }
+
+  /** Get accumulated console messages. */
+  getConsoleMessages(): string[] {
+    return [...this._consoleLog];
+  }
+
+  /** Check if the simulator is ready (worker has sent 'ready' message). */
+  isReady(): boolean {
+    return this._ready;
   }
 
   private startWorker() {
@@ -166,6 +200,7 @@ class App {
         break;
 
       case 'state':
+        this._lastState = msg;
         this.inspector.updateState(msg);
         break;
 
@@ -174,10 +209,12 @@ class App {
         break;
 
       case 'console':
+        this._consoleLog.push(msg.message);
         this.inspector.log(msg.message);
         break;
 
       case 'ready':
+        this._ready = true;
         document.getElementById('loading-overlay')?.classList.add('hidden');
         this.inspector.log('Pyodide ready, starting code.py...');
         break;
@@ -194,3 +231,6 @@ class App {
 
 const app = new App();
 app.start();
+
+// Expose for integration tests
+(window as any).__picoReaderApp = app;

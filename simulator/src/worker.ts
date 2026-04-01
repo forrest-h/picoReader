@@ -74,6 +74,9 @@ async function startPyodide() {
       '(Earthsea 1)  Ursula K Le Guin - A Wizard Of Earthsea (1835).txt',
       '(Red Rising 2) Pierce Brown - Golden Son (3249).txt',
       '(Red Rising 3) Pierce Brown - Morning Star (12557).txt',
+      'Test Author - Short Story (20).txt',
+      'Test Author - Five Lines (25).txt',
+      '(TestSeries 1) Test Author - Chapter Book (50).txt',
     ];
   }
 
@@ -191,9 +194,22 @@ sys.stderr = _ConsoleWriter()
     'settings',
     'menu',
     'recent',
+    'analytics',
+    'orp',
+    'skins/__init__',
+    'skins/default',
+    'skins/terminal',
+    'skins/rpg',
+    'skins/typewriter',
+    'animations/__init__',
+    'animations/page_turn',
+    'animations/particles',
+    'animations/walker',
   ];
 
   pyodide.FS.mkdirTree('/app/pico_reader');
+  pyodide.FS.mkdirTree('/app/pico_reader/skins');
+  pyodide.FS.mkdirTree('/app/pico_reader/animations');
 
   for (const mod of picoModules) {
     try {
@@ -253,7 +269,9 @@ _original_main = code.main
 
 async def _patched_main():
     hw_display, backlight, spi, encoder = code.init_hardware()
-    font = code.bitmap_font.load_font("fonts/Toronto_14.pcf")
+
+    settings = code.load_settings()
+    font = code.load_reading_font(settings.get('font', 'Toronto_14.pcf'))
     smallfont = code.bitmap_font.load_font("fonts/Toronto_9.pcf")
 
     books = [x for x in code.os.listdir("/sd/books/") if x.endswith('.txt')]
@@ -263,7 +281,7 @@ async def _patched_main():
     metadata = [code.parse_book_filename(b) for b in books]
     lens = [m[3] for m in metadata]
 
-    state = code.AppState()
+    state = code.AppState(settings=settings)
     book = code.BookReader(books, metadata, lens)
     book.load_place()
 
@@ -272,7 +290,9 @@ async def _patched_main():
     root = code.menu.build_menu_tree(books, metadata, recent_filenames)
     state.menu_state = code.menu.MenuState(root)
 
-    disp = code.Display(hw_display, backlight, font, smallfont)
+    disp = code.Display(hw_display, backlight, font, smallfont,
+                        skin_name=state.skin_name)
+    disp.set_brightness(state.brightness)
 
     # Register with state tracker
     _state_tracker.register(state, book, metadata)
@@ -321,6 +341,7 @@ async def _async_main_loop(state, book, disp, keys, encoder):
             handler = code.BUTTON_HANDLERS.get((state.mode, event.key_number))
             if handler:
                 handler(state, book, disp)
+                _state_tracker.send_state()
 
         # --- Encoder ---
         enc_pos = encoder.position
@@ -329,6 +350,7 @@ async def _async_main_loop(state, book, disp, keys, encoder):
             handler = code.ENCODER_HANDLERS.get((state.mode, direction))
             if handler:
                 handler(state, book, disp)
+                _state_tracker.send_state()
             last_enc_pos = enc_pos
 
         # --- Word display timer ---
@@ -365,10 +387,10 @@ async def _async_main_loop(state, book, disp, keys, encoder):
 
                 last_word_time = now
 
-        # --- Periodic state update (every ~500ms = 50 iterations) ---
+        # --- Periodic state update (every ~100ms = 10 iterations) ---
         _loop_counter = getattr(_async_main_loop, '_counter', 0) + 1
         _async_main_loop._counter = _loop_counter
-        if _loop_counter % 50 == 0:
+        if _loop_counter % 10 == 0:
             _state_tracker.send_state()
 
         # --- Yield to browser event loop via JS Promise ---
