@@ -36,7 +36,6 @@ door, as if something clawed at it.
 @CHOICE "Go north" -> guard_room
 @CHOICE "Go east" -> library
 @CHOICE "Go west" -> storeroom
-@CHOICE "Go back outside" -> entrance
 
 @ROOM storeroom
 @DESC
@@ -44,8 +43,17 @@ Dusty shelves line the walls. Most are
 empty, but you spot a few useful items
 among the cobwebs.
 @ENDDESC
-@ITEM torch "Torch" "A sturdy wooden torch soaked in pitch. It burns brightly."
+@CHOICE "Take the torch" -> torch_taken @PICKUP torch @SET has_torch
 @ITEM healing_herb "Healing Herb" "A sprig of green herb with a minty smell."
+@CHOICE "Search deeper" -> storeroom_back
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM torch_taken
+@DESC
+You lift the torch from its bracket. It
+burns brightly, casting dancing shadows
+across the dusty shelves.
+@ENDDESC
 @CHOICE "Search deeper" -> storeroom_back
 @CHOICE "Return to foyer" -> foyer
 
@@ -123,7 +131,7 @@ It steps aside with a grinding bow.
 @DESC
 The passage is pitch black. You can hear
 dripping water and distant echoes.
-@IF torch
+@IF has_torch
 Your torch illuminates rough-hewn walls
 and a narrow staircase leading down.
 @ENDIF
@@ -170,8 +178,25 @@ A massive iron door with three gem-shaped
 recesses. The slots glow faintly: one
 blue, one red, one green.
 @ENDDESC
-@CHOICE "Place all three gems" -> treasure_room @NEED blue_gem @NEED red_gem @NEED green_gem
+@CHOICE "Place the blue gem" -> vault_blue @NEED blue_gem
 @CHOICE "Try to force the door" -> vault_force
+@CHOICE "Go back" -> deep_chamber
+
+@ROOM vault_blue
+@DESC
+The blue gem clicks into its recess and
+glows brightly. The door hums. Two slots
+remain: red and green.
+@ENDDESC
+@CHOICE "Place the red gem" -> vault_red @NEED red_gem
+@CHOICE "Go back" -> deep_chamber
+
+@ROOM vault_red
+@DESC
+The red gem flares to life beside the
+blue. The door trembles. One slot remains.
+@ENDDESC
+@CHOICE "Place the green gem" -> treasure_room @NEED green_gem
 @CHOICE "Go back" -> deep_chamber
 
 @ROOM vault_force

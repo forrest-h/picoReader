@@ -24,7 +24,7 @@ WORD: XYZZY"
 @ITEM keys "Set of Keys" "Brass keys on a worn leather ring."
 @ITEM lamp "Brass Lamp" "A battered but sturdy oil lamp. It has plenty of fuel."
 @ON_ENTER @SET know_xyzzy
-@CHOICE "Take supplies and go outside" -> road
+@CHOICE "Go outside" -> road
 @CHOICE "Say XYZZY" -> debris_room @NEED know_xyzzy
 @SCORE +5
 
@@ -67,7 +67,7 @@ on the floor. A low crawl leads west.
 @SCORE +10
 @CHOICE "Crawl west" -> cobble_crawl @NEED lamp
 @CHOICE "Go back up" -> valley
-@CHOICE "Try crawling in the dark" -> dark_fall @NEED !lamp
+@CHOICE "Crawl into the dark" -> dark_fall @NEED !lamp
 
 @ROOM dark_fall
 @DESC
@@ -118,7 +118,16 @@ feet high. The walls are covered with
 cave formations. A cheerful little bird
 is singing in a cage near the passage.
 @ENDDESC
-@ITEM bird "Caged Bird" "A small songbird with brilliant blue and gold plumage."
+@CHOICE "Take the caged bird" -> bird_taken @PICKUP bird @SET has_bird
+@CHOICE "Go south" -> awk_canyon
+@CHOICE "Go west" -> pit_top
+
+@ROOM bird_taken
+@DESC
+You carefully lift the cage. The bird
+chirps happily, as if glad to have
+company on your journey.
+@ENDDESC
 @CHOICE "Go south" -> awk_canyon
 @CHOICE "Go west" -> pit_top
 
@@ -164,7 +173,7 @@ You are on the east bank of a fissure
 which splits the hall. The mist is quite
 thick here, obscuring all detail. A
 narrow crystal bridge spans the gap.
-@IF diamond
+@IF has_diamond
 The bridge shimmers more brightly as
 you approach with the diamond.
 @ENDIF
@@ -217,8 +226,17 @@ large collection of diamonds scattered
 on the floor, glittering in the lamplight
 like a thousand tiny stars.
 @ENDDESC
-@ITEM diamond "Diamonds" "A handful of brilliant cut diamonds. Worth a fortune."
+@CHOICE "Take the diamonds" -> diamonds_taken @PICKUP diamond @SET has_diamond
 @SCORE +25
+@CHOICE "Go south" -> crossover
+
+@ROOM diamonds_taken
+@DESC
+You scoop up handfuls of brilliant cut
+diamonds. They catch the lamplight and
+scatter tiny rainbows across the walls.
+Worth a fortune.
+@ENDDESC
 @CHOICE "Go south" -> crossover
 
 @ROOM swiss_cheese
@@ -278,7 +296,7 @@ A massive red dragon lies coiled around
 an enormous pile of treasure. One yellow
 eye opens as you approach. Smoke curls
 from its nostrils.
-@IF bird
+@IF has_bird
 The bird begins to sing a hauntingly
 beautiful melody. The dragon closes
 its eye and falls into a deep sleep.
@@ -328,20 +346,34 @@ Colossal Cave. A natural skylight far
 above lets in a shaft of sunlight. In
 the center, a stone altar holds an
 ancient crown.
-@IF gold_nugget
-@IF diamond
-@IF chalice
+@IF has_all_treasure
 The crown begins to glow as you approach
 with the treasures. The cave hums with
 ancient power.
 @ENDIF
-@ENDIF
-@ENDIF
 @ENDDESC
 @ITEM crown "Ancient Crown" "A platinum crown set with a flawless star sapphire."
-@CHOICE "Place treasures on the altar" -> victory @NEED gold_nugget @NEED diamond @NEED chalice
-@CHOICE "Take the crown and leave" -> exit_cave
+@CHOICE "Place gold nugget" -> altar_nugget @NEED gold_nugget
+@CHOICE "Leave with the crown" -> exit_cave
 @SCORE +25
+
+@ROOM altar_nugget
+@DESC
+You place the gold nugget on the altar.
+It glows faintly. The altar awaits more
+offerings.
+@ENDDESC
+@CHOICE "Place the diamonds" -> altar_diamond @NEED diamond @USE gold_nugget @SET placed_nugget
+@CHOICE "Leave with the crown" -> exit_cave
+
+@ROOM altar_diamond
+@DESC
+The diamonds join the nugget on the
+altar. Both treasures pulse with light.
+One more offering is needed.
+@ENDDESC
+@CHOICE "Place the chalice" -> victory @NEED chalice @USE diamond @SET has_all_treasure
+@CHOICE "Leave with the crown" -> exit_cave
 
 @ROOM exit_cave
 @DESC

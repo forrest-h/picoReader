@@ -1,0 +1,466 @@
+@TITLE Adventureland
+@AUTHOR Adapted from Scott Adams (1978)
+@START meadow
+@DESC_TEXT The first text adventure, reimagined.
+
+@ROOM meadow
+@DESC
+You stand in a sunny
+meadow. Tall grass sways
+in a warm breeze. Paths
+lead in every direction.
+A stone altar sits among
+the wildflowers.
+@IF placed_eggs
+Eggs glow on the altar.
+@ENDIF
+@ENDDESC
+@CHOICE "Go to the forest" -> forest
+@CHOICE "Go to the lake" -> lakeside
+@CHOICE "Go to the swamp" -> swamp
+@CHOICE "Examine the altar" -> treasure_altar
+
+@ROOM forest
+@DESC
+A dense forest of ancient
+oaks. Shafts of light
+pierce the canopy. Rusty
+axe juts from a stump.
+A path winds north to a
+massive tree.
+@ENDDESC
+@ITEM axe "Rusty Axe" "A notched axe on a worn oak handle."
+@CHOICE "Go to the big tree" -> tree_base
+@CHOICE "Push through brush" -> quicksand
+@CHOICE "Back to the meadow" -> meadow
+
+@ROOM tree_base
+@DESC
+An enormous oak towers
+above you. Its trunk is
+wider than a house. Angry
+bees swarm around a high
+hollow. A knotted rope
+hangs down.
+@ENDDESC
+@CHOICE "Climb the rope" -> tree_top
+@CHOICE "Back to the forest" -> forest
+
+@ROOM tree_top
+@DESC
+You cling to the oak's
+crown, wind whipping your
+hair. A nest of leathery
+eggs sits in a crook of
+branches. Bees swarm the
+honeycombs above.
+@IF bees_calm
+The bees drift lazily.
+Sweet honey drips from
+golden combs in reach.
+@ENDIF
+@ENDDESC
+@ITEM dragon_eggs "Dragon Eggs" "Three speckled eggs, warm to the touch."
+@CHOICE "Smoke bees with mud" -> tree_calm @NEED mud
+@CHOICE "Grab honey bare" -> bee_sting @NEED !bees_calm
+@CHOICE "Climb down" -> tree_base
+
+@ROOM tree_calm
+@DESC
+You smear swamp mud on a
+branch and light it. Warm
+smoke billows up. Bees
+retreat to the far side
+of the canopy, docile
+at last.
+@ENDDESC
+@ON_ENTER @SET bees_calm
+@SCORE +10
+@CHOICE "Back to the tree top" -> tree_top_calm @USE mud
+
+@ROOM tree_top_calm
+@DESC
+Bees drift lazily above,
+no longer a threat now.
+Sweet honey drips from
+golden combs. The dragon
+egg nest sits nearby. The
+view stretches for miles.
+@ENDDESC
+@ITEM honey "Wild Honey" "A sticky comb of fragrant golden honey."
+@ITEM dragon_eggs2 "Dragon Eggs" "Three speckled eggs, warm to the touch."
+@CHOICE "Climb down" -> tree_base
+
+@ROOM bee_sting
+@DESC
+Bees attack in a furious
+cloud. Stings cover your
+hands and face. You lose
+your grip and tumble from
+the tree.
+@ENDDESC
+@GAMEOVER "The bees were too fierce. Perhaps smoke would calm them."
+
+@ROOM lakeside
+@DESC
+A crystal lake stretches
+before you. Golden fish
+dart beneath the surface.
+A rocky ledge juts over
+the water to the east.
+@ENDDESC
+@CHOICE "Catch a fish" -> lake_fall @NEED !has_net
+@CHOICE "Walk to the ledge" -> ledge
+@CHOICE "Back to the meadow" -> meadow
+
+@ROOM lake_fall
+@DESC
+You lunge at a golden
+fish but they dart away.
+You overbalance and fall
+into freezing water. The
+current pulls you under.
+@ENDDESC
+@GAMEOVER "The lake is deeper than it looks. You needed a net."
+
+@ROOM ledge
+@DESC
+A narrow rocky ledge over
+the lake. Far below, the
+water shimmers. Carved in
+the rock is a crude arrow
+pointing down. It says
+"GROVE" beneath it.
+@IF mirror_used
+You recall the mirror's
+vision of a hidden grove!
+This must be the way.
+@ENDIF
+@ENDDESC
+@CHOICE "Climb down cliff" -> hidden_grove @NEED mirror_used
+@CHOICE "Back to the lake" -> lakeside
+
+@ROOM swamp
+@DESC
+Murky water bubbles among
+cypress stumps. The air
+is thick with rot. Dark
+mud oozes everywhere.
+Gnarled roots form a way
+underground.
+@ENDDESC
+@ITEM mud "Swamp Mud" "A handful of thick, pungent swamp mud."
+@CHOICE "Go underground" -> root_chamber
+@CHOICE "Back to the meadow" -> meadow
+
+@ROOM quicksand
+@DESC
+The ground gives way! You
+sink into quicksand up to
+your waist. It pulls at
+you with a cold grip that
+tightens every second.
+@ENDDESC
+@CHOICE "Pull free slowly" -> forest
+@CHOICE "Struggle wildly" -> quicksand_death
+
+@ROOM quicksand_death
+@DESC
+Your thrashing only makes
+it worse. The quicksand
+closes over your head.
+The forest falls silent.
+@ENDDESC
+@GAMEOVER "You sank beneath the quicksand. Move slowly next time."
+
+@ROOM root_chamber
+@DESC
+Twisted tree roots form
+the ceiling of this cave.
+Iron-rich water seeps
+down the walls. Passages
+branch in three ways.
+@ENDDESC
+@ITEM keys "Iron Keys" "A ring of heavy iron keys, cold to the touch."
+@CHOICE "Go to the alcove" -> lamp_alcove
+@CHOICE "Go deeper" -> pit_top
+@CHOICE "Up to the swamp" -> swamp
+
+@ROOM lamp_alcove
+@DESC
+A small alcove carved
+from the earth. A shelf
+holds a battered oil lamp
+still full of fuel. Tally
+marks scratch the walls.
+@ENDDESC
+@ITEM lamp "Oil Lamp" "A sturdy brass lamp with a bright flame."
+@ON_ENTER @SET has_lamp
+@SCORE +5
+@CHOICE "Back to root chamber" -> root_chamber
+
+@ROOM pit_top
+@DESC
+You stand at the edge of
+a yawning pit. Darkness
+swallows all light below.
+A rough ladder descends
+into the void. Cool air
+rises from the depths.
+@ENDDESC
+@CHOICE "Descend with lamp" -> pit_descent @NEED has_lamp
+@CHOICE "Descend in the dark" -> pit_dark @NEED !has_lamp
+@CHOICE "Go back" -> root_chamber
+
+@ROOM pit_dark
+@DESC
+You climb down blind.
+Your foot slips on a wet
+rung. You fall, tumbling
+through darkness until
+the ground finds you.
+@ENDDESC
+@GAMEOVER "It is pitch dark. You needed a lamp."
+
+@ROOM pit_descent
+@DESC
+Your lamp flickers as you
+climb down the rusty iron
+ladder. At last your feet
+touch solid ground. A dim
+chamber opens before you.
+@ENDDESC
+@SCORE +5
+@CHOICE "Look around" -> pit_bottom
+
+@ROOM pit_bottom
+@DESC
+The lamp reveals a rough
+chamber at the pit base.
+An iron door is set into
+the far wall, locked. Old
+bones litter the floor.
+@ENDDESC
+@CHOICE "Unlock the door" -> antechamber @NEED keys
+@CHOICE "Climb back up" -> pit_top
+
+@ROOM antechamber
+@DESC
+An ornate hallway. Faded
+tapestries line the wall.
+A burly guard in rusted
+armor blocks the passage,
+his spear raised.
+@ENDDESC
+@ON_ENTER @SET door_unlocked
+@CHOICE "Offer the honey" -> guard_bribed @NEED honey
+@CHOICE "Fight the guard" -> guard_fight
+@CHOICE "Go back" -> pit_bottom_open @USE keys
+
+@ROOM guard_fight
+@DESC
+You charge the guard. He
+sidesteps easily and
+strikes you down with the
+blunt end of his spear.
+Far too strong for you.
+@ENDDESC
+@GAMEOVER "The guard is too strong. Perhaps a gift would work."
+
+@ROOM guard_bribed
+@DESC
+The guard's eyes light up
+at the sight of honey. He
+takes it and steps aside,
+licking his fingers. A
+grand doorway awaits.
+@ENDDESC
+@ON_ENTER @SET guard_fed
+@SCORE +35
+@CHOICE "Enter throne room" -> royal_chamber @USE honey
+
+@ROOM pit_bottom_open
+@DESC
+The iron door stands open
+now. The rough chamber is
+quiet. The ladder leads
+back up.
+@ENDDESC
+@CHOICE "Go through the door" -> antechamber
+@CHOICE "Climb back up" -> pit_top
+
+@ROOM royal_chamber
+@DESC
+A vaulted throne room
+carved from living rock.
+Crystals in the ceiling
+catch your lamp, casting
+rainbows. A jeweled crown
+rests on the throne.
+@ENDDESC
+@ITEM crown "Royal Crown" "A platinum crown set with blood-red rubies."
+@CHOICE "Search behind throne" -> treasury @NEED mirror_used
+@CHOICE "Go back" -> antechamber_clear
+
+@ROOM antechamber_clear
+@DESC
+The hallway is quiet now.
+The guard sits content in
+a corner, still savoring
+honey. The throne room
+lies to the north.
+@ENDDESC
+@CHOICE "Go to throne room" -> royal_chamber
+@CHOICE "Back to the pit" -> pit_bottom_open
+@CHOICE "Examine the mirror" -> mirror_room
+
+@ROOM mirror_room
+@DESC
+Set into the wall is an
+ancient mirror framed in
+tarnished silver. Its
+surface ripples like
+water though no breeze
+stirs the air.
+@ENDDESC
+@CHOICE "Look in the mirror" -> mirror_vision
+@CHOICE "Go back" -> antechamber_clear
+
+@ROOM mirror_vision
+@DESC
+The mirror clouds, then
+clears. You see a hidden
+grove beneath a ledge by
+a lake. Then a treasury
+behind a throne, veiled
+by illusion. You know
+the secret paths now.
+@ENDDESC
+@ON_ENTER @SET mirror_used
+@SCORE +10
+@CHOICE "Step back" -> mirror_room
+
+@ROOM treasury
+@DESC
+Behind the throne, hidden
+by ancient magic, a small
+vault gleams. A gold
+scepter stands in a case
+of crystal, untouched
+for centuries.
+@ENDDESC
+@ITEM scepter "Gold Scepter" "A scepter of pure gold topped with a sapphire."
+@SCORE +15
+@CHOICE "Back to throne room" -> royal_chamber
+
+@ROOM hidden_grove
+@DESC
+You climb down to a grove
+hidden beneath the ledge.
+Luminous moss coats the
+stones. A golden net lies
+on a branch, shimmering
+with enchantment.
+@ENDDESC
+@ITEM golden_net "Golden Net" "A net woven from threads of pure gold."
+@ON_ENTER @SET has_net
+@SCORE +10
+@CHOICE "Back to the meadow" -> meadow
+
+@ROOM treasure_altar
+@DESC
+A weathered stone altar
+stands in a clearing.
+Ancient runes ring its
+base. Four shallow pits
+mark its surface, each
+shaped for an offering.
+@IF placed_eggs
+Eggs glow in the first
+hollow, pulsing warmth.
+@ENDIF
+@IF placed_crown
+The crown gleams in the
+second hollow.
+@ENDIF
+@IF placed_net
+The golden net fills the
+third hollow with light.
+@ENDIF
+@IF placed_scepter
+The scepter shines in
+the last hollow.
+@ENDIF
+@ENDDESC
+@CHOICE "Place dragon eggs" -> altar_eggs @NEED dragon_eggs
+@CHOICE "Place the crown" -> altar_crown @NEED crown
+@CHOICE "Place golden net" -> altar_net @NEED golden_net
+@CHOICE "Place the scepter" -> altar_scepter @NEED scepter
+
+@ROOM altar_eggs
+@DESC
+You set the warm eggs
+into the first hollow.
+They fit perfectly. The
+runes around them begin
+to glow with a faint
+amber light.
+@ENDDESC
+@ON_ENTER @SET placed_eggs
+@SCORE +10
+@CHOICE "Back to the altar" -> treasure_altar @USE dragon_eggs
+
+@ROOM altar_crown
+@DESC
+The crown settles into
+the second depression.
+Ruby light joins the
+amber glow. The altar
+vibrates beneath your
+hands.
+@ENDDESC
+@ON_ENTER @SET placed_crown
+@SCORE +10
+@CHOICE "Back to the altar" -> treasure_altar @USE crown
+
+@ROOM altar_net
+@DESC
+The golden net flows into
+the third hollow like
+liquid metal. A third
+light joins the chorus.
+The runes pulse faster.
+@ENDDESC
+@ON_ENTER @SET placed_net
+@SCORE +10
+@CHOICE "Back to the altar" -> treasure_altar @USE golden_net
+
+@ROOM altar_scepter
+@DESC
+You place the scepter in
+the final hollow. All
+four lights blaze upward
+in a pillar of white fire
+The earth trembles. A
+voice booms from above.
+@ENDDESC
+@ON_ENTER @SET placed_scepter
+@SCORE +10
+@CHOICE "Listen to the voice" -> victory @USE scepter
+
+@ROOM victory
+@DESC
+"ADVENTURER! YOU HAVE
+GATHERED THE FOUR LOST
+TREASURES AND RESTORED
+THEM TO THEIR RIGHTFUL
+PLACE. THE LAND IS MADE
+WHOLE AGAIN."
+
+Light fills the meadow.
+Flowers bloom where the
+altar stood. You have
+won Adventureland!
+@ENDDESC
+@SCORE +20
+@WIN "You restored the four treasures! Score: {score}"

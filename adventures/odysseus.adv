@@ -1,0 +1,629 @@
+@TITLE The Odyssey
+@AUTHOR After Homer
+@START troy_aftermath
+@DESC_TEXT Epic voyage home from the fall of Troy.
+
+@ROOM troy_aftermath
+@DESC
+The great city of Troy
+smolders behind you. Ten
+years of war are ended.
+Your crew cheers upon the
+black ships. Ithaca and
+Penelope await far away.
+@ENDDESC
+@SCORE +5
+@CHOICE "Set sail for home" -> open_sea
+@CHOICE "Raid the coast" -> raid_coast
+
+@ROOM raid_coast
+@DESC
+Greed seizes you. Your men
+plunder a coastal town,
+gorging on wine and gold.
+But dawn brings soldiers.
+You barely escape. Dark
+clouds gather overhead.
+@ENDDESC
+@ON_ENTER @SET gods_angry
+@CHOICE "Flee to the ships" -> open_sea
+
+@ROOM open_sea
+@DESC
+The wine-dark sea spreads
+before your twelve ships.
+Fair winds carry you west.
+@IF gods_angry
+Yet the sky grows black.
+Poseidon stirs the deep.
+@ENDIF
+A storm descends without
+warning. For nine days you
+are driven off course.
+@ENDDESC
+@CHOICE "Ride out the storm" -> lotus_island
+
+@ROOM lotus_island
+@DESC
+You beach on a strange and
+drowsy shore. Sweet scent
+hangs heavy in the air.
+Smiling natives approach,
+offering blossoms of
+unearthly beauty.
+@ENDDESC
+@CHOICE "Eat the lotus" -> lotus_doom
+@CHOICE "Refuse the fruit" -> lotus_rescue
+@CHOICE "Explore the shore" -> lotus_crew
+
+@ROOM lotus_doom
+@DESC
+The blossom melts on your
+tongue like honey and
+starlight. A warm fog
+fills your mind. Who is
+Penelope? Where is Ithaca?
+You no longer care.
+@ENDDESC
+@GAMEOVER "You forgot home, wife, and name. The lotus claimed you."
+
+@ROOM lotus_crew
+@DESC
+Deeper inland, you find
+your scouts sprawled among
+flowers. Their eyes are
+glazed. They smile but do
+not know you. The lotus
+has stolen their wits.
+@ENDDESC
+@CHOICE "Drag them to ship" -> lotus_rescue_crew
+@CHOICE "Leave them behind" -> lotus_abandon
+
+@ROOM lotus_rescue_crew
+@DESC
+You haul the weeping men
+to the ships by force and
+bind them to the benches.
+They curse you now but
+will thank you later.
+@ENDDESC
+@ON_ENTER @SET crew_dragged
+@SCORE +10
+@CHOICE "Set sail at once" -> cyclops_island
+
+@ROOM lotus_abandon
+@DESC
+You leave them swaying
+among the blossoms. Three
+good men, lost to a flower.
+The remaining crew rows
+in grim silence. Guilt
+gnaws at your heart.
+@ENDDESC
+@ON_ENTER @SET crew_abandoned
+@SCORE +5
+@CHOICE "Set sail" -> cyclops_island
+
+@ROOM lotus_rescue
+@DESC
+You push the blossoms
+aside and order all men
+back aboard. None tasted
+the cursed fruit. Wise
+Odysseus, cunning even in
+small things.
+@ENDDESC
+@SCORE +10
+@CHOICE "Set sail" -> cyclops_island
+
+@ROOM cyclops_island
+@DESC
+A green island of wild
+goats and high cliffs. You
+spy a vast cave mouth on
+the hillside. Smoke rises
+from within. Sheep bleat
+in enormous pens.
+@ENDDESC
+@CHOICE "Enter the cave" -> cyclops_cave
+@CHOICE "Stay by the ships" -> aeolus_island
+
+@ROOM cyclops_cave
+@DESC
+Inside, wheels of cheese
+line the walls. The cave
+is vast. Then a shadow
+darkens the entrance. A
+one-eyed giant rolls a
+boulder across the door.
+Polyphemus the Cyclops
+has trapped you.
+@ENDDESC
+@CHOICE "Say you are Nobody" -> cyclops_nobody
+@CHOICE "Give your true name" -> cyclops_named
+
+@ROOM cyclops_nobody
+@DESC
+"I am Nobody," you say.
+That night, you sharpen an
+olive stake in the fire.
+While he sleeps, you drive
+it into his eye. He howls.
+"Nobody is hurting me!"
+The other giants ignore
+his cries. No help comes.
+@ENDDESC
+@ON_ENTER @SET nobody_trick
+@SCORE +20
+@CHOICE "Escape under sheep" -> cyclops_escape
+
+@ROOM cyclops_named
+@DESC
+"I am Odysseus, sacker of
+Troy!" you boast. You
+blind him with the stake
+but as you flee, he prays:
+"Father Poseidon, avenge
+me upon Odysseus!"
+The sea itself becomes
+your enemy.
+@ENDDESC
+@ON_ENTER @SET poseidon_curse
+@SCORE +10
+@CHOICE "Escape under sheep" -> cyclops_escape
+
+@ROOM cyclops_escape
+@DESC
+You cling to the belly of
+a great ram as it ambles
+past the blinded giant.
+His groping hands feel
+only wool. One by one your
+men slip free. You run
+for the black ships.
+@ENDDESC
+@SCORE +15
+@CHOICE "Sail away" -> aeolus_island
+
+@ROOM aeolus_island
+@DESC
+The floating isle of King
+Aeolus, master of winds.
+He feasts you for a month,
+then gives you a gift: a
+leather bag containing all
+contrary winds. Only the
+west wind blows free to
+carry you home.
+@ENDDESC
+@CHOICE "Guard the bag" -> wind_guard
+@CHOICE "Trust crew with it" -> wind_crisis
+
+@ROOM wind_guard
+@DESC
+Nine days you clutch the
+bag, sleepless. On the
+tenth, Ithaca appears on
+the horizon! But then
+exhaustion claims you.
+Your crew, thinking it
+holds gold, opens the bag.
+All winds burst free.
+@ENDDESC
+@SCORE +5
+@CHOICE "Watch Ithaca vanish" -> circe_approach
+
+@ROOM wind_crisis
+@DESC
+Your crew opens the bag on
+the second night, sure it
+holds treasure. All winds
+shriek free at once. The
+storm drives you far from
+any course you knew.
+@ENDDESC
+@CHOICE "Endure the tempest" -> circe_approach
+
+@ROOM circe_approach
+@DESC
+Weeks later, a green isle
+appears. Smoke rises from
+a stone palace hidden
+among ancient oaks. Your
+men are starving. You must
+explore.
+@ENDDESC
+@CHOICE "Search the shore" -> circe_herb
+@CHOICE "Go to the palace" -> circe_palace
+
+@ROOM circe_herb
+@DESC
+Among the rocks you find a
+strange white flower with
+a black root. A divine
+scent rises from it. Some
+god has placed it here
+for you.
+@ENDDESC
+@ITEM moly_herb "Moly Herb" "White flower, black root. Proof against enchantment."
+@CHOICE "Go to the palace" -> circe_palace
+@CHOICE "Smell it closely" -> circe_herb
+
+@ROOM circe_palace
+@DESC
+The sorceress Circe stands
+in her doorway, radiant
+and terrible. She offers a
+golden cup of wine. Your
+men have already drunk.
+They root in the pigpen,
+transformed to swine.
+@ENDDESC
+@CHOICE "Drink the wine" -> circe_doom
+@CHOICE "Show the moly herb" -> circe_ally @NEED moly_herb
+@CHOICE "Draw your sword" -> circe_sword
+
+@ROOM circe_doom
+@DESC
+The wine is sweet. Your
+limbs twist and shorten.
+Coarse bristles erupt from
+your skin. You try to
+scream but only a squeal
+emerges.
+@ENDDESC
+@GAMEOVER "You are a pig now. You should have found protection."
+
+@ROOM circe_sword
+@DESC
+You leap at her with drawn
+blade. She is impressed by
+your daring. "No mortal
+has resisted me before."
+She restores your men and
+swears an oath of aid.
+@ENDDESC
+@ON_ENTER @SET circe_friend
+@SCORE +10
+@CHOICE "Ask about home" -> circe_counsel
+
+@ROOM circe_ally
+@DESC
+You eat the moly and drink
+without fear. The magic
+fails. Circe gasps. "You
+must be Odysseus! Only he
+could resist my art." She
+frees your men at once.
+@ENDDESC
+@ON_ENTER @SET circe_friend
+@SCORE +15
+@CHOICE "Ask about home" -> circe_counsel @USE moly_herb
+
+@ROOM circe_counsel
+@DESC
+Circe speaks gravely: "You
+must descend to the land
+of the dead and consult
+the prophet Tiresias. Only
+he can guide you home."
+She draws you a map.
+@ENDDESC
+@ITEM circe_map "Circe's Map" "A map to the Underworld and back again."
+@CHOICE "Sail for the dead" -> underworld_shore
+
+@ROOM underworld_shore
+@DESC
+At the world's edge, you
+beach your ship. The River
+of Ocean flows here into
+shadow. You dig a trench
+and pour offerings of milk
+and dark blood. Ghosts
+crowd forward, gibbering.
+@ENDDESC
+@CHOICE "Summon Tiresias" -> tiresias @NEED circe_map
+@CHOICE "Flee this place" -> sirens_approach
+
+@ROOM tiresias
+@DESC
+The blind prophet drinks
+the blood and his dead
+eyes focus. "Hear me,
+Odysseus. You will reach
+the island of the Sun god.
+His golden cattle graze
+there. DO NOT EAT THEM.
+If you do, all is lost."
+@ENDDESC
+@ON_ENTER @SET tiresias_warning
+@SCORE +10
+@CHOICE "Return to daylight" -> underworld_exit @USE circe_map
+
+@ROOM underworld_exit
+@DESC
+You climb from the trench
+of blood and shadows. The
+sun strikes your face like
+a blessing. Your crew
+weeps with relief to see
+you return from death.
+@ENDDESC
+@CHOICE "Sail onward" -> sirens_approach
+
+@ROOM sirens_approach
+@DESC
+Haunting song drifts over
+the water. Ahead, a rocky
+isle gleams white with the
+bones of sailors. The
+Sirens sing of glory and
+knowledge. Your men grip
+the oars, entranced.
+@ENDDESC
+@CHOICE "Plug ears with wax" -> sirens_safe
+@CHOICE "Listen to the song" -> sirens_doom
+
+@ROOM sirens_doom
+@DESC
+The song is everything you
+ever desired. You order
+the helmsman to steer for
+the rocks. He obeys,
+smiling. The hull shatters
+on the reef of bones.
+@ENDDESC
+@GAMEOVER "The Sirens' song was your last. Use wax next time."
+
+@ROOM sirens_safe
+@DESC
+Beeswax seals every ear.
+You alone hear the Sirens,
+lashed to the mast as you
+ordered. Their song is
+unbearable beauty. You
+scream to be freed. But
+your men row on, deaf,
+and the song fades.
+@ENDDESC
+@ON_ENTER @SET sirens_passed
+@SCORE +10
+@CHOICE "Sail the strait" -> scylla_strait
+
+@ROOM scylla_strait
+@DESC
+The passage narrows. On
+the left cliff, six long
+necks sway: Scylla, each
+head fanged. On the right,
+Charybdis the whirlpool
+swallows the sea itself.
+There is no safe path.
+@ENDDESC
+@CHOICE "Hug Scylla's cliff" -> scylla_pass
+@CHOICE "Risk the whirlpool" -> charybdis_doom
+@CHOICE "Try the middle" -> middle_pass
+
+@ROOM charybdis_doom
+@DESC
+The whirlpool yawns wide.
+Your ship tilts, slides,
+and is swallowed whole.
+Down into the black gullet
+of the sea. Nothing
+surfaces.
+@ENDDESC
+@GAMEOVER "Charybdis devours all. Scylla takes only six."
+
+@ROOM scylla_pass
+@DESC
+Six heads strike like
+serpents. Six men scream
+and are gone, snatched to
+the cliffs above. You hear
+them call your name as
+they die. The price of
+passage is paid in blood.
+@ENDDESC
+@ON_ENTER @SET scylla_loss
+@SCORE +10
+@CHOICE "Sail on, grieving" -> sun_island
+
+@ROOM middle_pass
+@DESC
+Both monsters attack. The
+whirlpool drags your stern
+while Scylla takes men
+from the bow. You lose
+twelve men and half your
+oars before breaking free.
+@ENDDESC
+@ON_ENTER @SET heavy_losses
+@SCORE +5
+@CHOICE "Limp onward" -> sun_island
+
+@ROOM sun_island
+@DESC
+Storms trap you on this
+isle for a month. Golden
+cattle graze the meadows,
+magnificent and sacred.
+Your crew grows skeletal
+with hunger.
+@IF tiresias_warning
+Tiresias said: do not eat
+the cattle of the Sun!
+@ENDIF
+@ENDDESC
+@CHOICE "Forbid the cattle" -> sun_patience @NEED tiresias_warning
+@CHOICE "Let crew eat" -> sun_wrath
+@CHOICE "Hunt for fish" -> sun_forage
+
+@ROOM sun_patience
+@DESC
+You hold firm, though your
+men weep with hunger. On
+the fortieth day, the
+storm breaks. A warm wind
+rises. The golden cattle
+watch as you depart,
+unharmed and blessed.
+@ENDDESC
+@SCORE +15
+@CHOICE "Sail on" -> calypso_island
+
+@ROOM sun_wrath
+@DESC
+Your starving crew kills
+the cattle while you
+sleep. The meat sizzles
+but the hides crawl and
+the flesh lows on the
+spit. Zeus sees all. A
+thunderbolt splits your
+ship. Only you survive,
+clinging to wreckage.
+@ENDDESC
+@ON_ENTER @SET crew_destroyed
+@SCORE +5
+@CHOICE "Drift on the waves" -> calypso_island
+
+@ROOM sun_forage
+@DESC
+You set hooks and lines
+and scour the shore for
+roots and shellfish. It is
+barely enough. When the
+storm lifts, you sail with
+hollow cheeks but clear
+conscience.
+@ENDDESC
+@SCORE +10
+@CHOICE "Sail on" -> calypso_island
+
+@ROOM calypso_island
+@DESC
+A paradise isle. The nymph
+Calypso takes you in. She
+offers immortality, youth
+eternal, and her love
+forever. Seven years pass
+in her embrace. But in the
+night you weep, staring
+across the sea toward home.
+@ENDDESC
+@CHOICE "Stay with Calypso" -> calypso_doom
+@CHOICE "Beg to leave" -> calypso_raft
+
+@ROOM calypso_doom
+@DESC
+You choose paradise. The
+centuries pass like honey.
+Penelope dies waiting.
+Telemachus never knows his
+father. Ithaca forgets
+the name of Odysseus.
+@ENDDESC
+@GAMEOVER "Immortality without home is just a beautiful prison."
+
+@ROOM calypso_raft
+@DESC
+Calypso weeps but relents.
+She helps you fell great
+trees and build a raft.
+She fills it with wine and
+bread and water. "Go then,
+mortal. Seek your death
+and your glory."
+@ENDDESC
+@SCORE +10
+@CHOICE "Sail for Ithaca" -> ithaca_shore
+
+@ROOM ithaca_shore
+@DESC
+Twenty years since you
+left. The rocky shore of
+Ithaca at last. But smoke
+rises from your palace.
+Over a hundred suitors
+feast on your wealth and
+court your wife. You are
+one man against many.
+@ENDDESC
+@SCORE +10
+@CHOICE "Disguise as beggar" -> ithaca_palace
+@CHOICE "Storm the palace" -> ithaca_fight
+
+@ROOM ithaca_palace
+@DESC
+In rags, you enter your
+own hall. The suitors mock
+the old beggar. They hurl
+bread and bones. But
+Penelope appears: she will
+marry whoever can string
+the great bow of Odysseus.
+@ENDDESC
+@ON_ENTER @SET disguised
+@CHOICE "String the bow" -> bow_strung
+
+@ROOM ithaca_fight
+@DESC
+You charge through the
+gate with a roar. A hundred
+swords turn toward you.
+But grey-eyed Athena walks
+beside you. Terror strikes
+the suitors. They fall
+like wheat before the
+scythe.
+@ENDDESC
+@SCORE +15
+@CHOICE "Seek Penelope" -> victory
+
+@ROOM bow_strung
+@DESC
+The suitors try and fail,
+one after another. Then
+the old beggar asks for a
+turn. They laugh. You take
+the great bow, string it
+in one smooth motion, and
+send an arrow through
+twelve axe-heads.
+@ENDDESC
+@SCORE +20
+@CHOICE "Reveal yourself" -> victory
+
+@ROOM victory
+@DESC
+@IF crew_destroyed
+You stand alone. Every
+companion is dead. But you
+are home.
+@ENDIF
+@IF heavy_losses
+Few survived the voyage.
+But those who did will sing
+of it forever.
+@ENDIF
+@IF poseidon_curse
+Poseidon's wrath follows
+you still. One last quest
+awaits, inland, carrying
+an oar until a stranger
+calls it a winnowing fan.
+@ENDIF
+@IF !crew_destroyed
+Your loyal crew kneels
+before their king,
+returned at last.
+@ENDIF
+Penelope tests you with
+the secret of your bed,
+carved from a living olive
+tree. You answer true.
+She weeps. You weep. Twenty
+years end in an embrace.
+@ENDDESC
+@WIN "Odysseus reclaims his throne. The long journey ends. Score: {score}"

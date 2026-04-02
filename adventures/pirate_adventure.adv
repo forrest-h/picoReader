@@ -1,0 +1,446 @@
+@TITLE Pirate Adventure
+@AUTHOR Adapted from Scott Adams
+@START flat
+@DESC_TEXT Treasure hunt from London to a pirate island.
+
+@ROOM flat
+@DESC
+Your tiny London flat. Rain
+streaks the window. A dusty
+bookshelf sags under old
+volumes. Crackers sit on the
+table beside cold tea.
+A leather-bound book catches
+your eye on the top shelf.
+@ENDDESC
+@ITEM crackers "Crackers" "Stale ship's biscuits. Something might eat these."
+@CHOICE "Read the old book" -> flat_book
+@CHOICE "Go outside" -> docks
+
+@ROOM flat_book
+@DESC
+The cracked leather cover reads
+"Voyages of Doubloon." Inside,
+faded ink tells of a pirate
+captain who buried his plunder
+on a nameless tropic isle. A
+folded map slips from the
+spine and flutters to the floor!
+@ENDDESC
+@ON_ENTER @SET know_treasure
+@SCORE +5
+@CHOICE "Pick up the map" -> flat_with_map
+
+@ROOM flat_with_map
+@DESC
+The map is yellowed and salt-
+stained. An island is drawn in
+ink with an X marked deep in
+the interior. Longitude and
+latitude are scrawled along the
+edge. Your heart pounds.
+@ENDDESC
+@ITEM treasure_map "Treasure Map" "Shows Captain Doubloon's island at 18N 64W."
+@CHOICE "Head to the docks" -> docks
+
+@ROOM docks
+@DESC
+London docks. Fog rolls off the
+Thames. Ships creak at anchor,
+rigging clanking in the wind.
+A sailor's shop huddles between
+warehouses. A weathered brig
+called the Salty Dog is moored
+at the end of the quay.
+@ENDDESC
+@CHOICE "Enter the shop" -> dock_shop
+@CHOICE "Board the ship" -> ship_deck
+@CHOICE "Go home" -> flat
+
+@ROOM dock_shop
+@DESC
+A cramped shop reeking of tar
+and tobacco. Ropes, lanterns,
+and nautical charts crowd every
+surface. A bottle of rum and a
+rusty shovel lean by the door.
+The shopkeep snores behind the
+counter.
+@ENDDESC
+@ITEM rum "Bottle of Rum" "Dark Caribbean rum. Warms the belly."
+@ITEM shovel "Shovel" "Rusty but sturdy. Good for digging."
+@CHOICE "Return to the docks" -> docks
+
+@ROOM ship_deck
+@DESC
+The deck of the Salty Dog.
+Salt-crusted planks, coiled
+rope, and a brass ship's wheel.
+The anchor chain drops into the
+murky Thames. A hatch leads
+below deck.
+@ENDDESC
+@CHOICE "Raise the anchor" -> anchor_up_room
+@CHOICE "Go below deck" -> ship_hold
+@CHOICE "Set sail" -> open_sea @NEED has_anchor_up
+@CHOICE "Return to docks" -> docks
+
+@ROOM ship_hold
+@DESC
+Below deck. Dusty cargo crates
+and hammocks sway with the
+tide. A parrot in a rusty cage
+squawks and ruffles its green
+feathers. It eyes you with one
+bright black bead.
+@ENDDESC
+@CHOICE "Give crackers" -> ship_hold_parrot @NEED crackers @USE crackers @SET has_parrot
+@CHOICE "Go up on deck" -> ship_deck
+
+@ROOM ship_hold_parrot
+@DESC
+The parrot snatches the crackers
+and gobbles them down. It hops
+from the cage onto your shoulder
+and nuzzles your ear. "Pieces
+of eight!" it squawks happily.
+You have a new companion.
+@ENDDESC
+@ON_ENTER @GIVE parrot
+@SCORE +10
+@CHOICE "Go up on deck" -> ship_deck
+
+@ROOM anchor_up_room
+@DESC
+You haul on the rusty chain,
+muscles burning. Link by link
+the anchor rises dripping from
+the Thames. The ship rocks free
+of her mooring. The Salty Dog
+is ready to sail.
+@ENDDESC
+@ON_ENTER @SET has_anchor_up
+@SCORE +5
+@CHOICE "Back to the wheel" -> ship_deck
+
+@ROOM open_sea
+@DESC
+Open ocean! The English coast
+fades astern. For days the wind
+is fair. Then black clouds boil
+on the horizon. A terrible
+storm bears down on you, waves
+high as houses. The ship groans
+and shudders.
+@ENDDESC
+@CHOICE "Drink rum for courage" -> storm_survived @NEED rum @USE rum
+@CHOICE "Ride out the storm" -> storm_death
+
+@ROOM storm_death
+@DESC
+A monstrous wave crashes over
+the bow. The mast snaps like a
+twig. Water fills the hold. The
+Salty Dog rolls over and sinks
+beneath the churning Atlantic.
+A stiff drink might have
+steadied your nerves.
+@ENDDESC
+@GAMEOVER "The storm took you. Liquid courage was the answer."
+
+@ROOM storm_survived
+@DESC
+You take a long pull of rum.
+Fire fills your belly and
+steadies your hands. You lash
+the wheel and ride out the
+tempest. Dawn breaks golden.
+An island shimmers on the
+horizon like a green jewel.
+@ENDDESC
+@ON_ENTER @SET storm_done
+@SCORE +10
+@CHOICE "Sail to the island" -> island_beach
+
+@ROOM island_beach
+@DESC
+White sand. Palm trees sway
+in warm breeze. Crystal water
+laps the shore. Your ship rides
+at anchor in the cove. Dense
+jungle rises inland. Rocky
+cliffs jut to the east.
+@ENDDESC
+@CHOICE "Enter the jungle" -> jungle_path
+@CHOICE "Follow the shore" -> rocky_shore
+@CHOICE "Climb the cliffs" -> cliff_lookout
+
+@ROOM jungle_path
+@DESC
+Dense tropical jungle. Vines
+thick as your arm hang from
+towering trees. Parrots flash
+bright in the canopy above.
+The air is thick and hot.
+@IF has_parrot
+Your parrot squawks and bobs
+its head, pointing deeper in.
+@ENDIF
+@ENDDESC
+@CHOICE "Follow the parrot" -> pirate_camp @NEED has_parrot
+@CHOICE "Hack through vines" -> jungle_lost
+@CHOICE "Go back to beach" -> island_beach
+
+@ROOM jungle_lost
+@DESC
+You slash at vines but they
+close behind you. Every path
+looks the same. Hours pass in
+green twilight before you
+stumble back to the beach,
+scratched and exhausted.
+A guide might help.
+@ENDDESC
+@CHOICE "Return to the beach" -> island_beach
+
+@ROOM pirate_camp
+@DESC
+An abandoned pirate camp! A
+fire pit full of cold ashes,
+rotting hammocks strung between
+palms, and rum bottles strewn
+about. In the ashes you find a
+rusty key. An old logbook
+mentions a cave on the shore.
+@ENDDESC
+@ITEM rusty_key "Rusty Key" "Encrusted with ash. Fits a large lock."
+@ON_ENTER @SET found_camp
+@SCORE +10
+@CHOICE "Head back" -> jungle_clear
+
+@ROOM jungle_clear
+@DESC
+The parrot knows the way now.
+It guides you swiftly through
+the tangle of vines and back
+toward the shore. Good bird.
+@ENDDESC
+@CHOICE "Go to the beach" -> island_beach
+
+@ROOM rocky_shore
+@DESC
+Jagged volcanic rock along
+the coast. Waves crash and
+spray. A dark cave mouth is
+blocked by fallen boulders.
+Tide pools glimmer between
+the rocks further along.
+@ENDDESC
+@CHOICE "Clear the boulders" -> cave_entrance @NEED shovel @SET rocks_cleared
+@CHOICE "Explore tide pools" -> tide_pools
+@CHOICE "Go back to beach" -> island_beach
+
+@ROOM tide_pools
+@DESC
+Beautiful pools teeming with
+tiny fish and bright anemones.
+Among the shells you spot a
+glass bottle sealed with wax.
+A scrap of paper curls inside.
+@ENDDESC
+@CHOICE "Read the note" -> bottle_note
+@CHOICE "Go back" -> rocky_shore
+
+@ROOM bottle_note
+@DESC
+The note is written in shaky
+hand: "The cave holds two
+prizes for those bold enough
+to look past the first. Seek
+the passage behind the chest."
+Signed, "A Repentant Mate."
+@ENDDESC
+@SCORE +5
+@CHOICE "Go back" -> rocky_shore
+
+@ROOM cliff_lookout
+@DESC
+High on the cliffs, wind in
+your hair. The whole island
+spreads below. Jungle canopy,
+white beach, your ship tiny
+in the cove.
+@IF found_camp
+Below the cliffs you can just
+make out the dark cave mouth
+on the rocky shore.
+@ENDIF
+@ENDDESC
+@SCORE +5
+@CHOICE "Climb back down" -> island_beach
+
+@ROOM cave_entrance
+@DESC
+You lever boulders aside with
+the shovel, grunting with the
+effort. Cool air rushes from
+the dark cave mouth. It smells
+of salt and something old.
+@ENDDESC
+@SCORE +10
+@CHOICE "Enter the cave" -> cave_tunnel
+@CHOICE "Go back" -> rocky_shore
+
+@ROOM cave_tunnel
+@DESC
+A winding tunnel, slick with
+moisture. Water drips from
+stalactites. Your footsteps
+echo in the dark. The passage
+forks ahead: left drops down,
+right curves upward.
+@ENDDESC
+@CHOICE "Go left" -> cave_trap
+@CHOICE "Go right" -> treasure_cave
+@CHOICE "Go back" -> cave_entrance
+
+@ROOM cave_trap
+@DESC
+Dead end! The floor crumbles
+beneath your feet. You grab
+the rocky ledge as a pit yawns
+below. Sharpened stakes gleam
+in the darkness far beneath.
+@ENDDESC
+@CHOICE "Pull yourself up" -> cave_tunnel
+@CHOICE "Let go" -> cave_trap_death
+
+@ROOM cave_trap_death
+@DESC
+You lose your grip and plummet
+into the spiked pit below.
+Captain Doubloon was not kind
+to uninvited guests. Perhaps
+the right path was the right
+path.
+@ENDDESC
+@GAMEOVER "A spiked pit ends your quest. Right was right."
+
+@ROOM treasure_cave
+@DESC
+A vast chamber glittering by
+the light of phosphorescent
+moss. In the center sits an
+ancient iron chest with a huge
+rusted padlock. Scratch marks
+surround the keyhole.
+@ENDDESC
+@CHOICE "Unlock the chest" -> chest_opened @NEED rusty_key @USE rusty_key
+@CHOICE "Force the lock" -> chest_trap
+@CHOICE "Go back" -> cave_tunnel
+
+@ROOM chest_trap
+@DESC
+You smash at the lock with a
+rock. A hidden mechanism clicks
+and a poison dart fires from
+the chest lid, striking your
+neck. Doubloon booby-trapped
+his treasure well. You needed
+the right key.
+@ENDDESC
+@GAMEOVER "Booby-trapped! You needed the key from the camp."
+
+@ROOM chest_opened
+@DESC
+The rusty lock falls away. You
+throw open the lid. Gold coins
+cascade like a waterfall!
+Doubloons, pieces of eight, and
+a jewel-encrusted cutlass lie
+within. Captain Doubloon's
+legendary hoard!
+@ENDDESC
+@ITEM gold_doubloons "Gold Doubloons" "Hundreds of gold coins stamped with skull and bones."
+@ITEM jeweled_cutlass "Jeweled Cutlass" "A curved blade set with rubies and emeralds."
+@SCORE +25
+@CHOICE "Look behind chest" -> treasure_deeper
+@CHOICE "Head for the ship" -> return_beach
+
+@ROOM treasure_deeper
+@DESC
+Behind the chest, a narrow
+crack in the cave wall. You
+squeeze through into a hidden
+chamber beyond. The air here
+is ancient and still.
+@ENDDESC
+@SCORE +10
+@CHOICE "Explore the chamber" -> secret_chamber
+@CHOICE "Go back" -> return_path
+
+@ROOM secret_chamber
+@DESC
+A domed grotto lit by crystals
+in the ceiling. On a stone
+pedestal sits a golden crown
+set with a massive black pearl.
+The Crown of Captain Doubloon
+himself! The greatest prize of
+all.
+@ENDDESC
+@ITEM pirate_crown "Pirate Crown" "Gold crown with a black pearl. Priceless."
+@SCORE +30
+@CHOICE "Return to the cave" -> return_path
+
+@ROOM return_path
+@DESC
+You squeeze back through the
+crack, pockets heavy with
+plunder. The phosphorescent
+moss lights your way through
+the winding tunnel and out
+into the island sunshine.
+@ENDDESC
+@SCORE +10
+@CHOICE "Head for the ship" -> return_beach
+
+@ROOM return_beach
+@DESC
+Back on the white sand beach.
+Your ship bobs in the cove,
+waiting faithfully. The hold
+is ready for treasure. The
+wind is fair for England.
+@IF has_parrot
+Your parrot squawks "Home!
+Home! Pieces of eight!"
+@ENDIF
+@ENDDESC
+@CHOICE "Board and set sail" -> sail_home
+
+@ROOM sail_home
+@DESC
+You load the treasure aboard
+and raise the anchor. Sails
+fill with warm trade wind. The
+island shrinks behind you as
+the Salty Dog points her bow
+toward London. Weeks pass
+under clear skies.
+@ENDDESC
+@SCORE +20
+@CHOICE "Arrive in London" -> victory
+
+@ROOM victory
+@DESC
+The Thames! London's grey
+skyline appears through the
+fog. You dock at the same
+quay you left from, hold
+bursting with pirate gold.
+From a tiny flat to a
+fortune beyond dreams.
+@ENDDESC
+@SCORE +20
+@WIN "You return to London rich beyond measure! Score: {score}"
