@@ -12,6 +12,7 @@ class BookReader:
         self.word_idx = 0
         self._cache = []
         self._cache_start = -1
+        self.total_lines = 0
         self.chapters = []
         self.chapter_index = -1
 
@@ -98,7 +99,7 @@ class BookReader:
         self._cache = []
 
     def build_chapter_index(self):
-        """Scan book file for ---CHAPTER: title--- markers."""
+        """Scan book file for ---CHAPTER: title--- markers and count lines."""
         self.chapters = []
         try:
             with open("/sd/books/{}".format(self.book), 'r') as f:
@@ -109,8 +110,10 @@ class BookReader:
                         title = stripped[11:-3].strip()
                         self.chapters.append((line_num, title))
                     line_num += 1
+            self.total_lines = line_num
         except OSError:
             self.chapters = []
+            self.total_lines = 0
         self._update_chapter_index()
 
     def _update_chapter_index(self):

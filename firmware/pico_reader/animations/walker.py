@@ -137,8 +137,8 @@ class Animation:
 
         # Position from book progress
         progress = 0.0
-        if book.book_len > 0:
-            progress = min(1.0, book.line_num / book.book_len)
+        if book.total_lines > 0:
+            progress = min(1.0, book.line_num / book.total_lines)
         base_x = _x_for_progress(progress)
 
         # Add wobble so walker visibly walks even with sub-pixel progress

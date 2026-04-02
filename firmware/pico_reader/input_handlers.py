@@ -65,8 +65,8 @@ def enter_jump_mode(state, book, disp):
     if state.playing:
         book.save_place()
         state.playing = False
-    if book.book_len > 0:
-        state.jump_pct = int(book.line_num * 100 / book.book_len)
+    if book.total_lines > 0:
+        state.jump_pct = int(book.line_num * 100 / book.total_lines)
     else:
         state.jump_pct = 0
     state.jump_pct = max(0, min(100, state.jump_pct))
@@ -240,7 +240,7 @@ def menu_select(state, book, disp):
         state.session_stats = SessionStats()
         disp.set_palette(state.theme_index)
         disp.set_book_title(book.book_metadata[book_id][0])
-        disp.update_progress(book.line_num, book.book_len)
+        disp.update_progress(book.line_num, book.total_lines)
         disp.show_reader_screen()
 
 
@@ -287,7 +287,7 @@ def menu_scroll_up(state, book, disp):
 
 def jump_confirm(state, book, disp):
     """CENTER in jump mode: jump to position and return to reader."""
-    target_line = int(book.book_len * state.jump_pct / 100)
+    target_line = int(book.total_lines * state.jump_pct / 100)
     book.line_num = target_line
     book.word_idx = 0
     book._cache_start = -1
@@ -299,7 +299,7 @@ def jump_confirm(state, book, disp):
     if word:
         disp.show_word(clean_word(word))
     disp.show_wpm(state.wpm)
-    disp.update_progress(book.line_num, book.book_len)
+    disp.update_progress(book.line_num, book.total_lines)
     disp.show_reader_screen()
 
 def jump_cancel(state, book, disp):

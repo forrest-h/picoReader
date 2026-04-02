@@ -104,7 +104,7 @@ def main_loop(state, book, disp, keys, encoder):
                             book.save_place()
                             if state.book_stats:
                                 state.book_stats.save()
-                            disp.update_progress(book.line_num, book.book_len)
+                            disp.update_progress(book.line_num, book.total_lines)
                             disp.refresh()
                             lines_since_save = 0
                 else:
@@ -158,6 +158,7 @@ def main():
     state = AppState(settings=settings)
     book = BookReader(books, metadata, lens)
     book.load_place()
+    book.build_chapter_index()
 
     # Build menu tree
     recent_filenames = recent.load_recent()

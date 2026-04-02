@@ -34,6 +34,7 @@ def _make_mocks():
     book.books = ["test_book.txt"]
     book.book_metadata = [("Title", "Author", "", 1000, "")]
     book.book_len = 1000
+    book.total_lines = 1000
     book.line_num = 500
     book.word_idx = 0
     disp = MagicMock()
@@ -397,6 +398,7 @@ class TestEnterJumpMode:
         state.mode = AppState.MODE_READER
         state.playing = False
         book.book_len = 1000
+        book.total_lines = 1000
         book.line_num = 500
         enter_jump_mode(state, book, disp)
         assert state.mode == AppState.MODE_JUMP
@@ -407,6 +409,7 @@ class TestEnterJumpMode:
         state, book, disp = _make_mocks()
         state.playing = True
         book.book_len = 1000
+        book.total_lines = 1000
         book.line_num = 500
         enter_jump_mode(state, book, disp)
         assert state.mode == AppState.MODE_JUMP
@@ -418,6 +421,7 @@ class TestEnterJumpMode:
         state, book, disp = _make_mocks()
         state.playing = False
         book.book_len = 0
+        book.total_lines = 0
         book.line_num = 0
         enter_jump_mode(state, book, disp)
         assert state.jump_pct == 0

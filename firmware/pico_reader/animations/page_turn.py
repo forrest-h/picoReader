@@ -40,8 +40,8 @@ class Animation:
             return
 
         new_pct = 0
-        if book.book_len > 0:
-            new_pct = int(book.line_num * 100 / book.book_len)
+        if book.total_lines > 0:
+            new_pct = int(book.line_num * 100 / book.total_lines)
         new_pct = min(100, max(0, new_pct))
 
         if new_pct != self._current_pct:
