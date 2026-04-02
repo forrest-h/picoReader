@@ -47,6 +47,8 @@ class AppState:
     MODE_STATS = 5
     MODE_PALETTE = 6
     MODE_FONT = 7
+    MODE_GAME_SELECT = 8
+    MODE_GAME = 9
 
     def __init__(self, settings=None):
         self.mode = self.MODE_MENU
@@ -65,6 +67,8 @@ class AppState:
         self.font_preview_idx = 0
         self.active_animations = set()
         self.menu_state = None  # Set after menu tree is built in main()
+        self.active_game = None
+        self.game_select_cursor = 0
         self.orp_mode = None  # None, 'color', or 'bold'
         self.skin_name = 'default'
         self.font_name = DEFAULTS['font']

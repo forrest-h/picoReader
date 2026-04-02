@@ -118,6 +118,11 @@ def main_loop(state, book, disp, keys, encoder):
 
                 last_word_time = now
 
+        # --- Game tick ---
+        if state.mode == AppState.MODE_GAME and state.active_game:
+            if state.active_game.tick(now):
+                disp.refresh()
+
         time.sleep(0.01)
 
 

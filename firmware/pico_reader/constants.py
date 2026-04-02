@@ -51,14 +51,13 @@ BTN_RIGHT  = 3  # GP10 — next chapter (when paused)
 BTN_DOWN   = 4  # GP8  — jump mode (percentage nav)
 PIN_COM = [board.GP12, board.GP7]
 
-# Available 14px PCF reading fonts (in fonts/ directory)
+# Available reading fonts (in fonts/ directory)
 AVAILABLE_FONTS = [
     'Toronto_14.pcf',
-    'Aleo-Regular-14.pcf',
-    'Bitter-Regular-14.pcf',
-    'BreeSerif-Regular-14.pcf',
-    'CreteRound-Regular-14.pcf',
-    'IBMPlexSerif-SemiBold-14.pcf',
-    'Merriweather-Regular-14.pcf',
-    'SpecialElite-Regular-14.pcf',
+    'Utopia-12.pcf',
+    'Courier-14.pcf',
+    'Terminus-14.bdf',
+    'Gohufont-14.bdf',
+    'Tamzen-7x14.bdf',
+    'Spleen-8x16.bdf',
 ]

@@ -322,6 +322,47 @@ class Display:
 
     # --- Brightness ---
 
+    # --- Game select display ---
+
+    def show_game_select_screen(self, cursor):
+        """Show game selection screen with highlighted cursor."""
+        from .games import GAME_LIST
+        group = displayio.Group()
+
+        # Background
+        bg_bmp = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
+        bg_palette = displayio.Palette(1)
+        bg_palette[0] = MENU_BG
+        group.append(displayio.TileGrid(bg_bmp, pixel_shader=bg_palette))
+
+        # Title
+        title_lbl = label.Label(self._smallfont, text="Games",
+                                color=0xffffff, base_alignment=False)
+        title_lbl.anchor_point = (0.5, 0.5)
+        title_lbl.anchored_position = MENU_TITLE_POS
+        group.append(title_lbl)
+
+        # Game items
+        y_start = 45
+        y_step = 30
+        for i, (name, _module) in enumerate(GAME_LIST):
+            is_selected = (i == cursor)
+            if is_selected:
+                sel_rect = Rect(20, y_start + i * y_step - 10, 120, 22,
+                                fill=MENU_SELECT_COLORS[1],
+                                outline=MENU_SELECT_COLORS[2], stroke=2)
+                group.append(sel_rect)
+            lbl = label.Label(self._smallfont, text=name,
+                              color=MENU_SELECT_COLORS[0] if is_selected
+                              else MENU_OTHER_COLORS[0],
+                              base_alignment=False)
+            lbl.anchor_point = (0.5, 0.5)
+            lbl.anchored_position = (80, y_start + i * y_step)
+            group.append(lbl)
+
+        self.display.show(group)
+        self.display.refresh()
+
     def set_brightness(self, brightness):
         self.backlight.duty_cycle = int(brightness / 100 * 65535)
 

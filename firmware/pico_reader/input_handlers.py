@@ -192,6 +192,11 @@ def _cycle_setting(state, disp, key):
     elif key == 'brightness':
         # Enter brightness adjustment mode (stay on menu screen)
         state.mode = AppState.MODE_BRIGHTNESS
+    elif key == 'games':
+        state.mode = AppState.MODE_GAME_SELECT
+        state.game_select_cursor = 0
+        disp.show_game_select_screen(state.game_select_cursor)
+        return
 
 
 def menu_select(state, book, disp):
@@ -425,6 +430,108 @@ def stats_dismiss(state, book, disp):
     disp.show_menu_screen(state.menu_state, book.book_metadata)
 
 
+# --- Game select mode handlers ---
+
+def game_select_confirm(state, book, disp):
+    """CENTER in game select: launch selected game."""
+    import gc
+    from .games import GAME_LIST, launch_game
+    name, module_name = GAME_LIST[state.game_select_cursor]
+    gc.collect()
+    game = launch_game(module_name, disp.display, disp._smallfont)
+    if game:
+        state.active_game = game
+        state.mode = AppState.MODE_GAME
+        disp.display.show(game.get_group())
+        disp.display.refresh()
+
+def game_select_back(state, book, disp):
+    """UP in game select: return to settings menu."""
+    state.mode = AppState.MODE_MENU
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
+
+def game_select_scroll_down(state, book, disp):
+    """Encoder CW in game select."""
+    from .games import GAME_LIST
+    state.game_select_cursor = (state.game_select_cursor + 1) % len(GAME_LIST)
+    disp.show_game_select_screen(state.game_select_cursor)
+
+def game_select_scroll_up(state, book, disp):
+    """Encoder CCW in game select."""
+    from .games import GAME_LIST
+    state.game_select_cursor = (state.game_select_cursor - 1) % len(GAME_LIST)
+    disp.show_game_select_screen(state.game_select_cursor)
+
+
+# --- Game mode handlers ---
+
+def _game_quit(state, disp):
+    """Clean up active game and return to game select."""
+    import gc
+    if state.active_game:
+        state.active_game.destroy()
+        state.active_game = None
+    gc.collect()
+    state.mode = AppState.MODE_GAME_SELECT
+    disp.show_game_select_screen(state.game_select_cursor)
+
+def game_button_center(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_button(BTN_CENTER)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+def game_button_up(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_button(BTN_UP)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+def game_button_left(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_button(BTN_LEFT)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+def game_button_right(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_button(BTN_RIGHT)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+def game_button_down(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_button(BTN_DOWN)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+def game_encoder_up(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_encoder(1)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+def game_encoder_down(state, book, disp):
+    if state.active_game:
+        result = state.active_game.handle_encoder(-1)
+        if result == 'quit':
+            _game_quit(state, disp)
+        else:
+            disp.display.refresh()
+
+
 # --- Legacy handlers (kept as aliases for backward compatibility) ---
 
 def select_and_play(state, book, disp):
@@ -473,6 +580,15 @@ BUTTON_HANDLERS = {
     # Font preview mode
     (AppState.MODE_FONT, BTN_CENTER): font_confirm,
     (AppState.MODE_FONT, BTN_UP):     font_confirm,
+    # Game select mode
+    (AppState.MODE_GAME_SELECT, BTN_CENTER): game_select_confirm,
+    (AppState.MODE_GAME_SELECT, BTN_UP):     game_select_back,
+    # Game mode
+    (AppState.MODE_GAME, BTN_CENTER): game_button_center,
+    (AppState.MODE_GAME, BTN_UP):     game_button_up,
+    (AppState.MODE_GAME, BTN_LEFT):   game_button_left,
+    (AppState.MODE_GAME, BTN_RIGHT):  game_button_right,
+    (AppState.MODE_GAME, BTN_DOWN):   game_button_down,
 }
 
 ENCODER_HANDLERS = {
@@ -488,4 +604,10 @@ ENCODER_HANDLERS = {
     (AppState.MODE_PALETTE, -1):    palette_adjust_down,
     (AppState.MODE_FONT, 1):        font_preview_next,
     (AppState.MODE_FONT, -1):       font_preview_prev,
+    # Game select mode
+    (AppState.MODE_GAME_SELECT, 1):  game_select_scroll_down,
+    (AppState.MODE_GAME_SELECT, -1): game_select_scroll_up,
+    # Game mode
+    (AppState.MODE_GAME, 1):  game_encoder_up,
+    (AppState.MODE_GAME, -1): game_encoder_down,
 }

@@ -173,6 +173,7 @@ def build_menu_tree(books, book_metadata, recent_filenames):
         MenuNode("Smart Pacing", setting_key="smart_pacing"),
         MenuNode("Brightness", setting_key="brightness"),
         MenuNode("Stats", setting_key="stats"),
+        MenuNode("System Info", setting_key="games"),
     ])
 
     root = MenuNode("picoReader", children=[

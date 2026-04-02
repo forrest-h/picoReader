@@ -12,12 +12,13 @@ from pico_reader.input_handlers import cycle_font
 # ---------------------------------------------------------------------------
 
 class TestAvailableFonts:
-    def test_has_eight_entries(self):
-        assert len(AVAILABLE_FONTS) == 8
+    def test_has_seven_entries(self):
+        assert len(AVAILABLE_FONTS) == 7
 
-    def test_all_are_pcf_files(self):
+    def test_all_are_font_files(self):
         for name in AVAILABLE_FONTS:
-            assert name.endswith('.pcf'), "{} is not a PCF file".format(name)
+            assert name.endswith('.pcf') or name.endswith('.bdf'), \
+                "{} is not a PCF or BDF file".format(name)
 
     def test_toronto_is_first(self):
         assert AVAILABLE_FONTS[0] == 'Toronto_14.pcf'
@@ -36,16 +37,16 @@ class TestAppStateFontName:
         assert s.font_name == 'Toronto_14.pcf'
 
     def test_font_from_settings(self):
-        s = AppState(settings={'font': 'Bitter-Regular-14.pcf',
+        s = AppState(settings={'font': 'Terminus-14.bdf',
                                'palette': '0', 'brightness': '50'})
-        assert s.font_name == 'Bitter-Regular-14.pcf'
+        assert s.font_name == 'Terminus-14.bdf'
 
     def test_missing_font_key_uses_default(self):
         s = AppState(settings={'palette': '1', 'brightness': '75'})
         assert s.font_name == DEFAULTS['font']
 
     def test_settings_stored_on_state(self):
-        settings = {'font': 'Aleo-Regular-14.pcf', 'palette': '0',
+        settings = {'font': 'Utopia-12.pcf', 'palette': '0',
                      'brightness': '50'}
         s = AppState(settings=settings)
         assert s.settings is settings
@@ -67,20 +68,20 @@ class TestFontSetting:
         monkeypatch.chdir(tmp_path)
         (tmp_path / "saves").mkdir()
         (tmp_path / "saves" / "settings.txt").write_text(
-            "font:Merriweather-Regular-14.pcf\n")
+            "font:Gohufont-14.bdf\n")
         from pico_reader.settings import load_settings
         s = load_settings()
-        assert s['font'] == 'Merriweather-Regular-14.pcf'
+        assert s['font'] == 'Gohufont-14.bdf'
 
     def test_font_round_trip(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         (tmp_path / "saves").mkdir()
         from pico_reader.settings import save_settings, load_settings
         settings = dict(DEFAULTS)
-        settings['font'] = 'SpecialElite-Regular-14.pcf'
+        settings['font'] = 'Spleen-8x16.bdf'
         save_settings(settings)
         loaded = load_settings()
-        assert loaded['font'] == 'SpecialElite-Regular-14.pcf'
+        assert loaded['font'] == 'Spleen-8x16.bdf'
 
 
 # ---------------------------------------------------------------------------
