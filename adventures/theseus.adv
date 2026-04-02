@@ -1,0 +1,441 @@
+@TITLE Theseus and the Minotaur
+@AUTHOR Greek Myth (Public Domain)
+@START athens_throne
+@DESC_TEXT Slay the Minotaur in the labyrinth of Crete.
+
+@ROOM athens_throne
+@DESC
+The throne room of Athens.
+King Aegeus grips his chair,
+face drawn with grief. Every
+nine years, seven youths must
+sail to Crete as tribute to
+the dreaded Minotaur.
+@ENDDESC
+@CHOICE "Volunteer to go" -> harbor
+@CHOICE "Refuse the quest" -> refuse_quest
+
+@ROOM refuse_quest
+@DESC
+Aegeus stares at you, broken.
+Without a champion, the seven
+youths are chosen by lot and
+sent to their doom. Athens
+weeps, and so do you.
+@ENDDESC
+@GAMEOVER "A hero must answer the call. Try again, Theseus."
+
+@ROOM harbor
+@DESC
+The harbor of Athens. A black-
+sailed ship rocks at anchor.
+Sailors load provisions for
+the grim voyage to Crete.
+Aegeus clasps your shoulders.
+"Return alive, my son."
+@ENDDESC
+@ITEM provisions "Provisions" "Salted meat, bread, and a skin of wine."
+@SCORE +5
+@CHOICE "Board the ship" -> ship_voyage
+
+@ROOM ship_voyage
+@DESC
+The wine-dark sea stretches
+to the horizon. Dolphins race
+your bow. Crete is two days
+hence. You have time to
+prepare yourself.
+@ENDDESC
+@SCORE +10
+@CHOICE "Pray to Athena" -> ship_prayer
+@CHOICE "Sharpen your blade" -> ship_blade
+@CHOICE "Rest below decks" -> crete_arrival
+
+@ROOM ship_prayer
+@DESC
+You kneel at the prow and
+whisper to grey-eyed Athena.
+The wind shifts, filling your
+sails. A white owl circles
+the mast, then vanishes.
+You feel her favor upon you.
+@ENDDESC
+@ON_ENTER @SET athena_blessing
+@CHOICE "Continue sailing" -> crete_arrival
+
+@ROOM ship_blade
+@DESC
+You draw your iron blade and
+work the whetstone until the
+edge gleams like moonlight.
+The other youths watch in
+silence, hope kindling in
+their eyes.
+@ENDDESC
+@ON_ENTER @SET sword_honed
+@CHOICE "Continue sailing" -> crete_arrival
+
+@ROOM crete_arrival
+@DESC
+The harbor of Knossos. White
+stone walls blaze in the sun.
+Bronze-armored guards line
+the dock. They bind your
+wrists and march you toward
+the great palace.
+@ENDDESC
+@SCORE +5
+@CHOICE "Walk with dignity" -> palace_hall
+
+@ROOM palace_hall
+@DESC
+The throne room of Knossos.
+King Minos sits crowned in
+gold, eyes cold as the sea.
+"More Athenian lambs for the
+beast," he sneers. A young
+woman watches from the shadow.
+@ENDDESC
+@CHOICE "Defy Minos boldly" -> palace_defiance
+@CHOICE "Stay silent" -> palace_garden
+
+@ROOM palace_defiance
+@DESC
+"I am Theseus, son of Aegeus.
+I will slay your monster and
+free Athens from this curse!"
+Minos laughs, but the woman
+in the shadows leans forward,
+her dark eyes shining.
+@ENDDESC
+@ON_ENTER @SET minos_defied
+@SCORE +10
+@CHOICE "Go with the guards" -> palace_garden
+
+@ROOM palace_garden
+@DESC
+Night. The palace garden is
+silver with moonlight. Orange
+trees scent the air. Tomorrow
+you enter the labyrinth.
+@IF minos_defied
+A whisper from the colonnade:
+"Theseus! Come quickly!"
+@ENDIF
+@ENDDESC
+@CHOICE "Speak with Ariadne" -> ariadne_meeting
+@CHOICE "Sleep and rest" -> labyrinth_entrance
+
+@ROOM ariadne_meeting
+@DESC
+Ariadne, daughter of Minos,
+presses close. "I watched you
+defy my father. Take these."
+She gives you a bronze sword
+and a ball of golden thread.
+"Tie it at the entrance. It
+will lead you back to me."
+@ENDDESC
+@ON_ENTER @SET ariadne_ally
+@ON_ENTER @SET has_thread
+@ON_ENTER @SET has_sword
+@ON_ENTER @GIVE thread
+@ON_ENTER @GIVE bronze_sword
+@SCORE +15
+@CHOICE "Swear to return" -> labyrinth_entrance
+
+@ROOM labyrinth_entrance
+@DESC
+Dawn. The great bronze doors
+of the labyrinth yawn open.
+Darkness breathes from within
+like the mouth of a beast.
+@IF has_thread
+You tie the golden thread to
+the door frame and step inside.
+@ENDIF
+@IF !has_thread
+You step inside with nothing
+but your courage and your fists.
+@ENDIF
+@ENDDESC
+@CHOICE "Go left" -> lab_bones
+@CHOICE "Go right" -> lab_fountain
+@CHOICE "Go straight" -> lab_dead_end
+
+@ROOM lab_bones
+@DESC
+A corridor of cracked stone.
+Bones litter the floor, the
+remains of past tributes. A
+skeleton clutches a battered
+bronze shield.
+@ENDDESC
+@ITEM shield "Bronze Shield" "A dented but sturdy Athenian shield."
+@CHOICE "Continue deeper" -> lab_chasm
+@CHOICE "Turn back" -> labyrinth_entrance
+
+@ROOM lab_fountain
+@DESC
+An underground spring trickles
+from a crack in the wall into
+a shallow basin. The water is
+cold and sweet. A dark passage
+leads further in.
+@ENDDESC
+@ITEM water_skin "Water Skin" "A leather skin filled with cool spring water."
+@CHOICE "Follow the water" -> lab_dark_turn
+@CHOICE "Turn back" -> labyrinth_entrance
+
+@ROOM lab_dead_end
+@DESC
+The corridor narrows and ends
+abruptly. Deep scratch marks
+score the walls, as if some
+beast clawed here in fury.
+A faint draft stirs your hair.
+@ENDDESC
+@CHOICE "Go back" -> labyrinth_entrance
+
+@ROOM lab_dark_turn
+@DESC
+The passage twists downward
+into deeper darkness. You hear
+water dripping somewhere far
+below. The air grows warm
+and stale.
+@ENDDESC
+@CHOICE "Follow the passage" -> lab_offerings
+@CHOICE "Go toward growling" -> lab_chasm
+@CHOICE "Turn back" -> lab_fountain
+
+@ROOM lab_offerings
+@DESC
+A low chamber lit by a crack
+in the ceiling. Crumbled clay
+offerings line the walls. Among
+the rubble, something gleams:
+a golden bull's horn, an
+ancient votive treasure.
+@ENDDESC
+@ITEM golden_horn "Golden Horn" "A golden bull's horn, heavy and ancient."
+@CHOICE "Go deeper" -> lab_chasm
+
+@ROOM lab_chasm
+@DESC
+A vast chasm splits the maze.
+Far below, black water churns.
+A narrow stone bridge, barely
+a foot wide, spans the gap.
+The growling is louder here,
+echoing from the depths.
+@ENDDESC
+@CHOICE "Cross the bridge" -> lab_deep
+@CHOICE "Jump the chasm" -> chasm_death
+@CHOICE "Follow thread back" -> labyrinth_entrance @NEED has_thread
+
+@ROOM chasm_death
+@DESC
+You leap, but the chasm is
+too wide. You fall, spinning
+into darkness. The black water
+swallows you without a sound.
+@ENDDESC
+@GAMEOVER "The chasm claimed you. The bridge was the only way."
+
+@ROOM lab_deep
+@DESC
+Deep in the labyrinth now.
+The air is hot and rank with
+the smell of beast. A low
+rumbling growl vibrates through
+the stone beneath your feet.
+@ENDDESC
+@CHOICE "Follow the growling" -> lab_approach
+@CHOICE "Retreat to the chasm" -> lab_chasm @NEED has_thread
+@CHOICE "Turn away" -> lab_lost
+
+@ROOM lab_lost
+@DESC
+You stumble through twisting
+corridors. Every passage looks
+the same. The walls close in.
+The darkness is absolute.
+@IF has_thread
+A glint of gold -- the thread!
+You seize it desperately.
+@ENDIF
+@ENDDESC
+@CHOICE "Follow the thread" -> lab_deep @NEED has_thread
+@CHOICE "Wander in darkness" -> lost_death @NEED !has_thread
+
+@ROOM lost_death
+@DESC
+Hours pass. Days, perhaps.
+You stumble on, throat burning
+with thirst, until at last
+your legs give way. The maze
+has claimed another soul.
+@ENDDESC
+@GAMEOVER "You wandered until thirst took you. Ariadne's thread would have saved you."
+
+@ROOM lab_approach
+@DESC
+The growling shakes loose dust
+from the ceiling. A vast
+archway opens before you,
+carved with bulls and axes.
+Beyond it, something enormous
+breathes in the darkness.
+@ENDDESC
+@CHOICE "Enter the chamber" -> minotaur_chamber
+
+@ROOM minotaur_chamber
+@DESC
+The Minotaur. Half man, half
+bull, huge as a galley. Its
+horns scrape the ceiling. Red
+eyes fix on you. It lowers
+its head and charges with a
+bellow that shakes the earth.
+@ENDDESC
+@CHOICE "Attack with sword" -> minotaur_fight @NEED has_sword
+@CHOICE "Brace with shield" -> minotaur_shield @NEED shield
+@CHOICE "Try to reason" -> reason_death
+@CHOICE "Flee" -> lab_lost
+
+@ROOM reason_death
+@DESC
+You raise your hands and call
+out to the beast. It does not
+understand. It does not care.
+The horns find you before your
+words find meaning.
+@ENDDESC
+@GAMEOVER "The Minotaur knows no mercy. You needed a weapon."
+
+@ROOM minotaur_fight
+@DESC
+You sidestep the charge and
+drive Ariadne's bronze sword
+deep between the beast's ribs.
+It screams, a sound of ages.
+It falls. The labyrinth shudders.
+The Minotaur is slain.
+@ENDDESC
+@ON_ENTER @SET minotaur_slain
+@SCORE +30
+@CHOICE "Stand victorious" -> minotaur_dead
+
+@ROOM minotaur_shield
+@DESC
+You plant your feet and raise
+the shield. The beast's horns
+slam into bronze. You hold.
+It staggers. You strike with
+a shard of broken horn. Again.
+Again. At last it falls.
+@ENDDESC
+@ON_ENTER @SET minotaur_slain
+@SCORE +25
+@CHOICE "Stand victorious" -> minotaur_dead
+
+@ROOM minotaur_dead
+@DESC
+The beast lies still. Blood
+pools on ancient stone. Silence
+fills the labyrinth for the
+first time in a thousand years.
+You must find your way out.
+@IF has_thread
+The golden thread gleams at
+your feet, leading home.
+@ENDIF
+@ENDDESC
+@SCORE +20
+@CHOICE "Follow the thread" -> labyrinth_exit @NEED has_thread
+@CHOICE "Search for an exit" -> escape_hard @NEED !has_thread
+
+@ROOM escape_hard
+@DESC
+You stumble through corridors
+for hours, bleeding and lost.
+At last, a sliver of daylight.
+You claw through rubble into
+blinding sun, half-dead but
+free. No one waits for you.
+@ENDDESC
+@SCORE +5
+@CHOICE "Stagger to the ship" -> escape_crete
+
+@ROOM labyrinth_exit
+@DESC
+You follow the golden thread
+through every twist and turn,
+back across the chasm bridge,
+past the bones and the spring,
+to the great bronze doors.
+Sunlight floods your eyes.
+@IF ariadne_ally
+Ariadne rushes to embrace you,
+tears streaming down her face.
+@ENDIF
+@ENDDESC
+@SCORE +20
+@CHOICE "Run to the ship" -> escape_crete
+
+@ROOM escape_crete
+@DESC
+You race through the sleeping
+city to the harbor. The other
+Athenian youths are already
+aboard. You cast off the lines
+and the black-sailed ship
+surges into open water.
+@IF ariadne_ally
+Ariadne stands at the prow,
+her hand in yours.
+@ENDIF
+@ENDDESC
+@SCORE +10
+@CHOICE "Set course for Athens" -> return_voyage
+
+@ROOM return_voyage
+@DESC
+The sea is calm. Athens rises
+on the horizon. You remember
+your father's last words: "If
+you live, change the black
+sails to white, so I will
+know from the cliffs."
+@ENDDESC
+@CHOICE "Change to white sails" -> victory_white
+@CHOICE "Forget the sails" -> victory_tragic
+
+@ROOM victory_white
+@DESC
+You raise the white sails.
+They catch the wind and blaze
+like wings against the blue
+sky. On the cliffs of Athens,
+old Aegeus sees them and falls
+to his knees, weeping with joy.
+All Athens celebrates the hero
+who ended the Minotaur's reign.
+@ENDDESC
+@SCORE +50
+@WIN "Theseus triumphs! White sails bring joy. Score: {score}"
+
+@ROOM victory_tragic
+@DESC
+In your weariness and triumph,
+you forget your father's plea.
+The black sails billow as you
+approach Athens. On the cliffs,
+Aegeus sees them and believes
+you dead. Mad with grief, the
+old king hurls himself into
+the sea that will bear his name.
+@ENDDESC
+@SCORE +30
+@WIN "You slew the beast, but forgot the sails. The Aegean Sea is named for your father's sorrow. Score: {score}"

@@ -1,0 +1,228 @@
+@TITLE Tutorial Dungeon
+@AUTHOR picoReader Team
+@START entrance
+@DESC_TEXT A short tutorial exercising all engine features.
+
+@ROOM entrance
+@DESC
+You stand before a moss-covered stone
+archway. Torchlight flickers from within.
+A brass sign reads "DUNGEON OF LEARNING".
+@ENDDESC
+@CHOICE "Enter the dungeon" -> foyer
+@CHOICE "Read the sign closely" -> entrance_sign
+
+@ROOM entrance_sign
+@DESC
+The sign reads: "Adventurer! Within these
+halls you will learn to explore, collect
+items, and make choices. Good luck!"
+@ENDDESC
+@ON_ENTER @SET read_sign
+@SCORE +5
+@CHOICE "Enter the dungeon" -> foyer
+
+@ROOM foyer
+@DESC
+A circular chamber with three doors.
+Torches line the walls. The air smells
+of damp stone and old parchment.
+@IF read_sign
+You notice scratch marks on the north
+door, as if something clawed at it.
+@ENDIF
+@ENDDESC
+@ITEM rusty_key "Rusty Key" "A heavy iron key with teeth worn smooth by age."
+@CHOICE "Go north" -> guard_room
+@CHOICE "Go east" -> library
+@CHOICE "Go west" -> storeroom
+
+@ROOM storeroom
+@DESC
+Dusty shelves line the walls. Most are
+empty, but you spot a few useful items
+among the cobwebs.
+@ENDDESC
+@CHOICE "Take the torch" -> torch_taken @PICKUP torch @SET has_torch
+@ITEM healing_herb "Healing Herb" "A sprig of green herb with a minty smell."
+@CHOICE "Search deeper" -> storeroom_back
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM torch_taken
+@DESC
+You lift the torch from its bracket. It
+burns brightly, casting dancing shadows
+across the dusty shelves.
+@ENDDESC
+@CHOICE "Search deeper" -> storeroom_back
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM storeroom_back
+@DESC
+Behind a fallen shelf you find a small
+leather pouch. Inside is a smooth blue
+gemstone that seems to glow faintly.
+@ENDDESC
+@ITEM blue_gem "Blue Gem" "A perfectly round sapphire that pulses with inner light."
+@SCORE +10
+@CHOICE "Return to storeroom" -> storeroom
+
+@ROOM library
+@DESC
+Tall bookshelves stretch to the ceiling.
+A reading desk holds an open tome.
+Most books have crumbled to dust.
+@ENDDESC
+@CHOICE "Read the open tome" -> library_tome
+@CHOICE "Search the shelves" -> library_shelves
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM library_tome
+@DESC
+The tome describes an ancient treasure
+hidden in the dungeon's depths. It says:
+"Only the bearer of three gems may claim
+the Dragon's Hoard."
+@ENDDESC
+@ON_ENTER @SET know_secret
+@SCORE +5
+@CHOICE "Keep reading" -> library
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM library_shelves
+@DESC
+Most books are ruined. Behind a false
+panel you find a hidden compartment.
+@ENDDESC
+@ITEM red_gem "Red Gem" "A ruby that flickers like a tiny flame."
+@SCORE +10
+@CHOICE "Return to library" -> library
+
+@ROOM guard_room
+@DESC
+A stone golem blocks the passage north.
+Its eyes glow with a dim red light.
+It does not move, but watches you.
+@ENDDESC
+@CHOICE "Try to sneak past" -> guard_fail
+@CHOICE "Offer the healing herb" -> guard_pass @NEED healing_herb
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM guard_fail
+@DESC
+The golem swats you back effortlessly.
+You land in a heap by the doorway.
+Perhaps it wants something?
+@ENDDESC
+@CHOICE "Try again" -> guard_room
+@CHOICE "Return to foyer" -> foyer
+
+@ROOM guard_pass
+@DESC
+You hold out the healing herb. The golem
+takes it gently, crushes it, and rubs the
+paste on a crack in its stone arm.
+It steps aside with a grinding bow.
+@ENDDESC
+@CHOICE "Proceed north" -> dark_hall @USE healing_herb @SET golem_passed
+@SCORE +15
+
+@ROOM dark_hall
+@DESC
+The passage is pitch black. You can hear
+dripping water and distant echoes.
+@IF has_torch
+Your torch illuminates rough-hewn walls
+and a narrow staircase leading down.
+@ENDIF
+@ENDDESC
+@CHOICE "Descend the stairs" -> deep_chamber @NEED torch
+@CHOICE "Feel along the wall" -> dark_hall_grope @NEED !torch
+@CHOICE "Go back" -> guard_room
+
+@ROOM dark_hall_grope
+@DESC
+You stumble in the darkness and crack
+your shin on a stone step. You need
+a light source to proceed safely.
+@ENDDESC
+@CHOICE "Go back for a torch" -> guard_room
+
+@ROOM deep_chamber
+@DESC
+A vast underground chamber opens before
+you. In the center, a stone pedestal
+holds a green gemstone.
+Ancient carvings cover the walls.
+@ENDDESC
+@ITEM green_gem "Green Gem" "An emerald that hums with quiet power."
+@SCORE +10
+@CHOICE "Examine the carvings" -> deep_carvings
+@CHOICE "Go to the vault door" -> vault_door
+@CHOICE "Go back upstairs" -> dark_hall
+
+@ROOM deep_carvings
+@DESC
+The carvings depict a dragon guarding a
+mountain of gold. Three gem-shaped slots
+are carved around a door at the far end
+of the chamber.
+@ENDDESC
+@ON_ENTER @SET seen_carvings
+@CHOICE "Go to the vault door" -> vault_door
+@CHOICE "Return" -> deep_chamber
+
+@ROOM vault_door
+@DESC
+A massive iron door with three gem-shaped
+recesses. The slots glow faintly: one
+blue, one red, one green.
+@ENDDESC
+@CHOICE "Place the blue gem" -> vault_blue @NEED blue_gem
+@CHOICE "Try to force the door" -> vault_force
+@CHOICE "Go back" -> deep_chamber
+
+@ROOM vault_blue
+@DESC
+The blue gem clicks into its recess and
+glows brightly. The door hums. Two slots
+remain: red and green.
+@ENDDESC
+@CHOICE "Place the red gem" -> vault_red @NEED red_gem
+@CHOICE "Go back" -> deep_chamber
+
+@ROOM vault_red
+@DESC
+The red gem flares to life beside the
+blue. The door trembles. One slot remains.
+@ENDDESC
+@CHOICE "Place the green gem" -> treasure_room @NEED green_gem
+@CHOICE "Go back" -> deep_chamber
+
+@ROOM vault_force
+@DESC
+The door doesn't budge. Not even a
+scratch. Whatever magic holds it shut
+is far beyond brute strength.
+@ENDDESC
+@CHOICE "Return" -> vault_door
+
+@ROOM treasure_room
+@DESC
+The door swings open with a rumble. Gold
+coins cascade from overflowing chests.
+Jeweled crowns and ancient weapons gleam
+in your torchlight. You've found the
+Dragon's Hoard!
+@ENDDESC
+@SCORE +50
+@WIN "You claimed the Dragon's Hoard! A true adventurer."
+
+@ROOM pit_trap
+@DESC
+The floor gives way beneath you! You
+tumble into a deep pit with no way out.
+The last thing you see is the torch
+sputtering in the dust far above.
+@ENDDESC
+@GAMEOVER "You fell into a pit trap. The dungeon claims another soul."

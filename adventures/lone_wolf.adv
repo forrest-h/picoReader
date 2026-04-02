@@ -1,0 +1,457 @@
+@TITLE Lone Wolf: Flight from the Dark
+@AUTHOR Adapted from Joe Dever (Project Aon)
+@START burning_monastery
+@DESC_TEXT Flee the destroyed Kai monastery to reach Holmgard.
+
+@ROOM burning_monastery
+@DESC
+The Kai monastery burns. Screams
+echo through smoke-filled halls as
+Darklord armies swarm the grounds.
+You are the last Kai Lord alive.
+You must escape now or perish.
+@ENDDESC
+@CHOICE "Search the armory" -> armory
+@CHOICE "Climb the outer wall" -> monastery_wall
+@CHOICE "Run through the fire" -> fire_run
+
+@ROOM fire_run
+@DESC
+You dash through a curtain of flame.
+Burning timbers crash around you.
+A beam strikes your shoulder and
+you stumble but keep running. You
+burst through a shattered window.
+@ENDDESC
+@ON_ENTER @SET wounded
+@SCORE +5
+@CHOICE "Flee to the forest" -> forest_edge
+
+@ROOM armory
+@DESC
+The armory is ablaze. Racks of
+weapons have toppled. Through the
+smoke you spot a Kai sword still
+on its mount. The ceiling groans
+above you.
+@ENDDESC
+@ITEM sword "Kai Sword" "A finely balanced blade bearing the Kai crest."
+@SCORE +10
+@CHOICE "Grab sword and flee" -> monastery_wall @SET has_sword
+@CHOICE "Search for more" -> armory_collapse
+
+@ROOM armory_collapse
+@DESC
+You linger too long. The burning
+rafters give way with a thunderous
+crack. Tons of flaming debris
+crash down upon you.
+@ENDDESC
+@GAMEOVER "Greed cost you your life. Take what you can and flee!"
+
+@ROOM monastery_wall
+@DESC
+You scale the outer wall and drop
+into soft grass beyond. Behind you
+the monastery is a roaring inferno.
+Giak war-horns sound in the valley.
+The forest ahead offers cover.
+@ENDDESC
+@SCORE +10
+@CHOICE "Enter the forest" -> forest_edge
+
+@ROOM forest_edge
+@DESC
+Ancient pines tower above you. The
+sounds of battle fade behind. Two
+trails lead deeper into Dorier
+forest. The north trail is wider.
+The south trail is overgrown.
+@ENDDESC
+@CHOICE "Take the north trail" -> forest_path_north
+@CHOICE "Take the south trail" -> forest_clearing
+
+@ROOM forest_path_north
+@DESC
+You follow the northern trail. Boot
+prints in the mud -- Giak patrol.
+The tracks are fresh. Guttural
+voices drift from around the bend.
+@ENDDESC
+@CHOICE "Hide in the bushes" -> hidden_safe
+@CHOICE "Keep walking" -> giak_ambush
+@CHOICE "Throw rocks at them" -> giak_rocks
+
+@ROOM hidden_safe
+@DESC
+You crouch behind dense bracken
+as three Giaks march past. Their
+yellow eyes scan the trail but
+miss you entirely. When they pass
+you slip away southward.
+@ENDDESC
+@ON_ENTER @SET avoided_giaks
+@SCORE +15
+@CHOICE "Continue south" -> forest_clearing
+
+@ROOM giak_ambush
+@DESC
+Three Giaks leap from the trees!
+Their crude swords slash the air.
+They snarl and circle you with
+murderous intent.
+@IF has_sword
+Your Kai sword gleams as you draw
+it into a fighting stance.
+@ENDIF
+@ENDDESC
+@CHOICE "Fight with sword" -> giak_fight @NEED sword
+@CHOICE "Run for your life" -> giak_flee
+
+@ROOM giak_fight
+@DESC
+Your Kai training takes over. You
+parry the first strike and cut
+down the lead Giak. The other two
+hesitate, then flee howling into
+the trees. The path is clear.
+@ENDDESC
+@ON_ENTER @SET giaks_defeated
+@SCORE +25
+@CHOICE "Continue south" -> forest_clearing
+
+@ROOM giak_flee
+@DESC
+You turn and sprint through the
+undergrowth. Branches lash your
+face. A Giak blade catches your
+leg and you stumble but break free.
+Blood soaks your trouser leg.
+@ENDDESC
+@ON_ENTER @SET wounded
+@CHOICE "Limp onward" -> forest_clearing
+
+@ROOM giak_rocks
+@DESC
+You hurl stones from the roadside
+at the Giaks. One takes a rock to
+the skull and drops. The others
+scatter in confusion, thinking
+an ambush. You slip past them.
+@ENDDESC
+@SCORE +15
+@CHOICE "Continue south" -> forest_clearing
+
+@ROOM forest_clearing
+@DESC
+A clearing in the pines. A dead
+merchant lies beside an overturned
+cart. His wares are scattered in
+the grass. Poor soul -- Giaks
+got him.
+@ENDDESC
+@ITEM gold_coins "Gold Coins" "A leather purse heavy with gold crowns."
+@ITEM healing_potion "Healing Potion" "A green glass vial labeled Laumspur."
+@SCORE +10
+@CHOICE "Continue down the road" -> forest_stream
+
+@ROOM forest_stream
+@DESC
+A swift stream crosses the trail.
+Stepping stones lead across the
+shallow water. Downstream you
+can see an old stone bridge half
+hidden by ivy.
+@ENDDESC
+@CHOICE "Wade across the stream" -> hermit_cabin
+@CHOICE "Go to the bridge" -> old_bridge
+
+@ROOM old_bridge
+@DESC
+A rickety stone bridge spans the
+stream. Several stones are missing
+and the mortar crumbles at your
+touch. It looks treacherous.
+@ENDDESC
+@CHOICE "Cross carefully" -> hermit_cabin
+@CHOICE "Run across quickly" -> bridge_collapse
+
+@ROOM bridge_collapse
+@DESC
+Your weight is too much. The
+ancient stones give way beneath
+you and you plunge into the rocky
+gorge below. The fall is fatal.
+@ENDDESC
+@GAMEOVER "Haste and old bridges do not mix. Cross with care!"
+
+@ROOM hermit_cabin
+@DESC
+A woodsman's cabin sits in a quiet
+glade. Smoke curls from the chimney.
+Herb gardens line the path to a
+sturdy oak door. It looks peaceful.
+@ENDDESC
+@CHOICE "Knock on the door" -> hermit_inside
+@CHOICE "Pass by quietly" -> graveyard_hill
+
+@ROOM hermit_inside
+@DESC
+A kind old hermit welcomes you. He
+sees your Kai cloak and bows. He
+offers you a hot meal and a rough
+map of the road to Holmgard.
+"Stay off the hilltops," he warns.
+@ENDDESC
+@ON_ENTER @SET hermit_friend
+@ON_ENTER @GIVE meal "Meal" "Bread, cheese, and dried meat wrapped in cloth."
+@ON_ENTER @GIVE map "Map" "A rough map marking the road to Holmgard."
+@SCORE +10
+@CHOICE "Thank him and leave" -> graveyard_hill @SET has_map
+
+@ROOM graveyard_hill
+@DESC
+The trail climbs over a barren
+hill dotted with ancient graves.
+Weathered stone markers lean at
+odd angles. A shadow passes over
+you -- Kraan circle overhead!
+@ENDDESC
+@ITEM shield "Shield" "A battered wooden shield from an old grave."
+@CHOICE "Hide among the graves" -> graveyard_hide @SET has_shield
+@CHOICE "Run downhill" -> kraan_attack
+
+@ROOM graveyard_hide
+@DESC
+You press yourself behind a tall
+gravestone. The Kraan shriek and
+circle but cannot spot you among
+the stones. After long minutes
+they wheel away to the north.
+@ENDDESC
+@SCORE +20
+@CHOICE "Descend the far slope" -> heal_spring
+
+@ROOM kraan_attack
+@DESC
+A Kraan dives at you with talons
+spread! Its shadow blots out the
+sun. You have a split second to
+react.
+@ENDDESC
+@CHOICE "Dive to the left" -> kraan_dodge
+@CHOICE "Dive to the right" -> kraan_caught
+
+@ROOM kraan_dodge
+@DESC
+You throw yourself left and roll
+behind a boulder. The Kraan's
+talons rake the dirt where you
+stood. It shrieks and climbs
+away, seeking easier prey.
+@ENDDESC
+@SCORE +20
+@CHOICE "Hurry downhill" -> heal_spring
+
+@ROOM kraan_caught
+@DESC
+The Kraan snatches you up in its
+iron talons. It carries you high
+above the forest then releases
+you over the treetops.
+@ENDDESC
+@GAMEOVER "Kraan are deadly. Hide from what you cannot fight!"
+
+@ROOM heal_spring
+@DESC
+At the base of the hill a clear
+spring bubbles from mossy rocks.
+The water sparkles with an almost
+magical shimmer. The road to the
+river lies ahead.
+@IF wounded
+Your wounds throb painfully. The
+spring water might help, or you
+could use your healing potion.
+@ENDIF
+@ENDDESC
+@CHOICE "Drink from the spring" -> heal_spring_drink
+@CHOICE "Continue to the river" -> river_bank @NEED !wounded
+@CHOICE "Limp to the river" -> river_bank_wounded @NEED wounded
+
+@ROOM heal_spring_drink
+@DESC
+The spring water is ice cold and
+tastes faintly of herbs. Warmth
+spreads through your body. Your
+wounds begin to close. You feel
+renewed strength in your limbs.
+@ENDDESC
+@ON_ENTER @SET healed
+@SCORE +5
+@CHOICE "Continue to the river" -> river_bank
+
+@ROOM river_bank
+@DESC
+The Dorier River stretches wide
+before you. The current is strong
+but the far bank is visible. A
+ferry landing lies downstream with
+a small boat tied to the dock.
+@ENDDESC
+@CHOICE "Swim across" -> river_swim
+@CHOICE "Go to the ferry" -> river_ferry
+
+@ROOM river_bank_wounded
+@DESC
+The Dorier River stretches wide
+before you. Your wounds ache and
+the current looks deadly. No way
+you can swim this. A ferry landing
+lies downstream. That's your path.
+@ENDDESC
+@CHOICE "Go to the ferry" -> river_ferry
+
+@ROOM river_swim
+@DESC
+You plunge into the cold water
+and swim hard against the current.
+Your Kai training serves you well.
+Gasping, you drag yourself onto
+the far bank. Holmgard awaits.
+@ENDDESC
+@SCORE +10
+@CHOICE "Follow the road" -> road_to_holmgard
+
+@ROOM river_ferry
+@DESC
+A weathered ferryman eyes you from
+his small boat. "Two gold crowns
+to cross," he growls, spitting
+into the river. "No coin, no
+ride. That's the way of it."
+@ENDDESC
+@CHOICE "Pay the ferryman" -> ferry_cross @NEED gold_coins @USE gold_coins
+@CHOICE "Use healing potion" -> potion_heal @NEED healing_potion
+@CHOICE "Threaten the ferryman" -> ferry_threat
+
+@ROOM potion_heal
+@DESC
+You drink the Laumspur potion.
+Warmth floods your body and your
+wounds knit together. The pain
+fades to nothing. You feel whole
+again. Now about that river...
+@ENDDESC
+@ON_ENTER @SET healed
+@CHOICE "Swim across" -> river_swim @USE healing_potion
+@CHOICE "Threaten the ferryman" -> ferry_threat
+
+@ROOM ferry_cross
+@DESC
+The ferryman pockets your gold and
+poles you across the wide river.
+"Giaks on the north road," he
+mutters. "Best go south through
+the farmlands." You thank him.
+@ENDDESC
+@SCORE +10
+@CHOICE "Follow the road" -> road_to_holmgard
+
+@ROOM ferry_threat
+@DESC
+You raise your fist at the old
+ferryman. He blows a whistle and
+three armed men emerge from the
+reeds. They are not pleased.
+You are overwhelmed.
+@ENDDESC
+@GAMEOVER "Violence against civilians wins no allies. Try gold instead!"
+
+@ROOM road_to_holmgard
+@DESC
+The King's Highway stretches south
+toward Holmgard. Refugees stream
+along the road -- farmers, women,
+children fleeing the Darklands
+invasion. The city is close now.
+@IF has_map
+Your map shows a shortcut through
+the western forest to the gates.
+@ENDIF
+@ENDDESC
+@CHOICE "Join the refugees" -> refugee_column
+@CHOICE "Take forest shortcut" -> forest_shortcut
+
+@ROOM refugee_column
+@DESC
+You march with the refugees. An
+old soldier recognizes your Kai
+cloak and salutes. Children stare
+with wide eyes. The column moves
+slowly but safely toward the city.
+@ENDDESC
+@SCORE +10
+@CHOICE "March to the gates" -> holmgard_gates
+
+@ROOM forest_shortcut
+@DESC
+You leave the road and enter the
+western woods. The trees are thick
+and the path fades quickly.
+@IF has_map
+The hermit's map shows the way
+clearly. You navigate with ease.
+@ENDIF
+@ENDDESC
+@CHOICE "Follow the map" -> shortcut_success @NEED map
+@CHOICE "Navigate by instinct" -> lost_forest
+
+@ROOM shortcut_success
+@DESC
+The hermit's map guides you true.
+You emerge from the forest within
+sight of Holmgard's great stone
+walls. The shortcut saved you
+hours of travel.
+@ENDDESC
+@SCORE +20
+@CHOICE "Approach the gates" -> holmgard_gates
+
+@ROOM lost_forest
+@DESC
+Without a map the forest is a
+maze of identical pines. You
+wander for hours before stumbling
+onto the highway again. Precious
+time wasted, but you are alive.
+@ENDDESC
+@CHOICE "Follow the road" -> holmgard_gates
+
+@ROOM holmgard_gates
+@DESC
+The great stone gates of Holmgard
+rise before you. Soldiers line the
+battlements. A captain descends
+the steps and approaches you.
+"Halt! State your business!"
+@IF has_sword
+He eyes your Kai sword with
+recognition and respect.
+@ENDIF
+@ENDDESC
+@CHOICE "Show your Kai cloak" -> victory
+@CHOICE "Demand entry" -> victory
+
+@ROOM victory
+@DESC
+The captain sees your Kai cloak
+and gasps. "A Kai Lord lives!"
+Word spreads like wildfire. You
+are rushed to the throne room
+where King Dorain himself greets
+you. The last Kai Lord has reached
+Holmgard. Sommerlund has hope.
+@ENDDESC
+@SCORE +30
+@WIN "You reached Holmgard alive! The last Kai Lord endures. Score: {score}"

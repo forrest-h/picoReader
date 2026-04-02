@@ -1,0 +1,537 @@
+@TITLE Zork I
+@AUTHOR Adapted from Infocom (1980)
+@START west_house
+@DESC_TEXT The Great Underground Empire awaits.
+
+@ROOM west_house
+@DESC
+You are standing in an open
+field west of a white house,
+with a boarded front door.
+There is a small mailbox here.
+@ENDDESC
+@CHOICE "Open the mailbox" -> mailbox_read
+@CHOICE "Go behind the house" -> behind_house
+@CHOICE "Enter the forest" -> forest
+
+@ROOM mailbox_read
+@DESC
+Opening the small mailbox
+reveals a leaflet. It reads:
+
+"WELCOME TO ZORK! Your goal
+is to collect treasures and
+deposit them in the trophy
+case inside the white house.
+Straying recklessly is unwise."
+@ENDDESC
+@SCORE +5
+@CHOICE "Close the mailbox" -> west_house
+
+@ROOM behind_house
+@DESC
+You are behind the white house.
+A path leads into the forest
+to the east. In one corner of
+the house there is a small
+window which is slightly ajar.
+@ENDDESC
+@CHOICE "Open the window" -> kitchen
+@CHOICE "Go to the forest" -> forest
+@CHOICE "Go back" -> west_house
+
+@ROOM forest
+@DESC
+This is a forest, with trees
+in all directions. To the east
+a path leads deeper into
+shadow. Songbirds chirp in the
+branches overhead. All paths
+seem to lead back to the house.
+@ENDDESC
+@CHOICE "Go back to the house" -> west_house
+
+@ROOM kitchen
+@DESC
+You are in the kitchen of the
+white house. A table seems to
+have been used recently for
+the preparation of food.
+@IF !has_lunch
+A brown paper lunch sack
+sits on the table.
+@ENDIF
+A passage leads west and a
+dark staircase leads down.
+@ENDDESC
+@CHOICE "Take the lunch sack" -> lunch_taken @NEED !has_lunch
+@CHOICE "Go west" -> living_room
+@CHOICE "Go upstairs" -> attic
+@CHOICE "Go down the stairs" -> cellar @NEED has_light
+@CHOICE "Descend into darkness" -> dark_stairs @NEED !has_light
+
+@ROOM lunch_taken
+@DESC
+You take the brown paper sack
+from the table. Inside is a
+reasonably appetizing sandwich,
+a clove of garlic, and a glass
+of water. A practical lunch.
+@ENDDESC
+@ON_ENTER @SET has_lunch
+@CHOICE "Continue" -> kitchen
+
+@ROOM living_room
+@DESC
+You are in the living room.
+There is a doorway to the east,
+a wooden door with strange
+gothic lettering to the west,
+which appears to be nailed shut.
+@IF !got_sword
+An elvish sword of great
+antiquity hangs above the
+trophy case.
+@ENDIF
+@IF !got_lantern
+A battery-powered brass
+lantern is on the mantelpiece.
+@ENDIF
+@ENDDESC
+@CHOICE "Take the sword" -> sword_taken @NEED !got_sword @SET got_sword
+@CHOICE "Take the lantern" -> lantern_taken @NEED !got_lantern @SET got_lantern
+@CHOICE "Go east" -> kitchen
+@CHOICE "Open the trophy case" -> trophy_case
+
+@ROOM sword_taken
+@DESC
+Taken. The sword is an elvish
+blade of incredible sharpness.
+Faint runes shimmer along
+its length. It practically
+hums with ancient purpose.
+@ENDDESC
+@ON_ENTER @GIVE sword "Elvish Sword" "A finely crafted blade. Faint runes shimmer along its length."
+@ON_ENTER @SET has_sword
+@CHOICE "Continue" -> living_room
+
+@ROOM lantern_taken
+@DESC
+Taken. The brass lantern flares
+to life as you lift it from
+the mantle. Its beam is strong
+and steady. This should light
+even the deepest cellar.
+@ENDDESC
+@ON_ENTER @GIVE lantern "Brass Lantern" "A sturdy battery-powered lamp. Its beam is strong and steady."
+@ON_ENTER @SET has_light
+@CHOICE "Continue" -> living_room
+
+@ROOM attic
+@DESC
+This is the attic. The only
+exit is a stairway leading
+down. A large coil of rope is
+lying in the corner. On a
+table is a nasty-looking knife.
+@ENDDESC
+@ITEM knife "Nasty Knife" "A rusty knife. Not much of a weapon, but unsettling."
+@CHOICE "Go downstairs" -> kitchen
+
+@ROOM cellar
+@DESC
+You are in a damp cellar with
+a narrow passageway leading
+north, and a crawlway to the
+south. The stairs go up to the
+kitchen.
+@IF has_sword
+Your sword glows with a faint
+blue light.
+@ENDIF
+@ENDDESC
+@ON_ENTER @SET visited_cellar
+@CHOICE "Go north" -> troll_room
+@CHOICE "Go south" -> coal_mine
+@CHOICE "Go upstairs" -> kitchen
+
+@ROOM dark_stairs
+@DESC
+You have moved into a dark
+place. It is pitch black. You
+are likely to be eaten by a
+grue.
+
+Oh no! A grue!
+@ENDDESC
+@GAMEOVER "You were eaten by a grue. An unspeakably horrible fate."
+
+@ROOM troll_room
+@DESC
+A nasty-looking troll, holding
+a great bloody axe, blocks all
+passages out of the room. He
+looks thoroughly displeased to
+see you.
+@IF has_sword
+Your sword glows more brightly!
+The troll eyes it nervously.
+@ENDIF
+@IF troll_cleared
+The troll lies defeated in the
+corner. The passages are clear.
+@ENDIF
+@ENDDESC
+@CHOICE "Attack with sword" -> troll_victory @NEED has_sword
+@CHOICE "Offer the lunch" -> troll_fed @NEED has_lunch
+@CHOICE "Try to sneak past" -> troll_fail @NEED !troll_cleared
+@CHOICE "Go north" -> maze_entrance @NEED troll_cleared
+
+@ROOM troll_victory
+@DESC
+A brilliant swordfight ensues!
+The troll is disarmed and flees
+down a passage with a howl of
+rage. Somehow you feel this
+was the correct approach.
+@ENDDESC
+@SCORE +20
+@ON_ENTER @SET troll_cleared
+@CHOICE "Go north" -> maze_entrance
+
+@ROOM troll_fed
+@DESC
+You extend the lunch sack. The
+troll sniffs, snatches it, and
+devours the sandwich in one
+enormous bite. He belches
+contentedly and wanders off.
+Not the most heroic solution.
+@ENDDESC
+@SCORE +15
+@ON_ENTER @SET troll_cleared
+@CHOICE "Go north" -> maze_entrance
+
+@ROOM troll_fail
+@DESC
+The troll flings you back with
+contemptuous ease. You land in
+an undignified heap. He resumes
+blocking the passage, looking
+even more annoyed than before.
+@ENDDESC
+@CHOICE "Try something else" -> troll_room
+
+@ROOM maze_entrance
+@DESC
+You are in a maze of twisty
+little passages, all alike.
+Identical corridors stretch in
+every direction. A sign on the
+wall reads: "Straying recklessly
+IS unwise."
+@ENDDESC
+@CHOICE "Go left" -> maze_middle
+@CHOICE "Go right" -> maze_entrance
+@CHOICE "Go straight" -> maze_exit
+@CHOICE "Go back south" -> troll_room
+
+@ROOM maze_middle
+@DESC
+You are in a maze of twisty
+little passages, all alike.
+Wait, was that the same sign?
+No, this one reads: "All the
+same, all different." How
+philosophically unhelpful.
+@ENDDESC
+@CHOICE "Go left" -> maze_entrance
+@CHOICE "Go right" -> maze_exit
+@CHOICE "Go straight" -> maze_middle
+
+@ROOM maze_exit
+@DESC
+You emerge from the maze into
+a wider passage heading east.
+Behind you, the twisty passages
+seem to shift and rearrange.
+There is no going back that way.
+@ENDDESC
+@CHOICE "Go east" -> dam_lobby
+
+@ROOM dam_lobby
+@DESC
+You are in a large cavern which
+serves as the entrance to Flood
+Control Dam #3. Passages lead
+north, south, and east. A sign
+reads: "FCD#3 - Scenic Vista"
+@ENDDESC
+@CHOICE "Go north" -> dam_top
+@CHOICE "Go south" -> loud_room
+@CHOICE "Go east" -> mine_shaft
+@CHOICE "Go back west" -> maze_entrance
+
+@ROOM dam_top
+@DESC
+You are standing on the top of
+Flood Control Dam #3, which
+was quite a technological
+achievement in its day. A huge
+sluice gate stands before you.
+A control bolt protrudes from
+the gate mechanism.
+@ENDDESC
+@CHOICE "Turn the bolt" -> dam_opened @NEED wrench
+@CHOICE "Search around" -> dam_search @NEED !has_wrench
+@CHOICE "Go south" -> dam_lobby
+
+@ROOM dam_search
+@DESC
+Searching along the railing,
+you find a large wrench lodged
+behind a control panel. Someone
+left this here centuries ago.
+How thoughtful of them.
+@ENDDESC
+@ON_ENTER @GIVE wrench "Wrench" "A large, heavy wrench. Perfect for turning bolts."
+@ON_ENTER @SET has_wrench
+@CHOICE "Go back to the gate" -> dam_top
+
+@ROOM dam_opened
+@DESC
+With great effort, you turn
+the bolt with the wrench. The
+sluice gates groan and slowly
+open. Water thunders through!
+The reservoir begins to drain,
+revealing a passage below.
+@ENDDESC
+@SCORE +15
+@ON_ENTER @SET dam_open
+@CHOICE "Go down to reservoir" -> reservoir @USE wrench
+
+@ROOM reservoir
+@DESC
+You are on the muddy bottom of
+what was once a vast reservoir.
+Fish flop helplessly among the
+puddles. The smell is appalling.
+Something metallic glints in
+the muck nearby.
+@ENDDESC
+@SCORE +5
+@ITEM platinum_bar "Platinum Bar" "A heavy bar of pure platinum, stamped with imperial marks."
+@CHOICE "Go back up" -> dam_lobby
+
+@ROOM loud_room
+@DESC
+This is a large room with a
+ceiling which is too high to
+see. An incredible roar of
+water fills the room, making
+it impossible to hear or even
+think clearly.
+@IF echo_done
+The room is now eerily quiet.
+The echo has been broken.
+@ENDIF
+@ENDDESC
+@CHOICE "Shout ECHO" -> loud_silenced @NEED !echo_done
+@CHOICE "Go north" -> dam_lobby
+@CHOICE "Go south" -> temple
+
+@ROOM loud_silenced
+@DESC
+"ECHO!" you shout. The room
+thunders back: "Echo...echo..."
+Then silence falls like a
+curtain. The roar of water
+fades to nothing. On a stone
+pedestal you can now see a
+jeweled egg!
+@ENDDESC
+@SCORE +15
+@ON_ENTER @SET echo_done
+@ITEM jeweled_egg "Jeweled Egg" "An intricately decorated egg encrusted with precious gems."
+@CHOICE "Go back" -> loud_room
+
+@ROOM temple
+@DESC
+This is the interior of a
+large temple. On the altar is
+a beautiful gold chalice,
+intricately engraved with
+scenes of ancient worship.
+Passages lead north and east.
+@ENDDESC
+@ITEM chalice "Gold Chalice" "A heavy gold chalice, beautifully engraved."
+@CHOICE "Go north" -> loud_room
+@CHOICE "Go east" -> cellar
+
+@ROOM mine_shaft
+@DESC
+You are in a narrow mine shaft
+which runs roughly north-south.
+Timbers brace the walls at
+intervals. The air is thick
+with coal dust. The floor is
+littered with old mining tools.
+@ENDDESC
+@CHOICE "Go north" -> coal_mine
+@CHOICE "Go south" -> thief_lair
+@CHOICE "Go west" -> dam_lobby
+
+@ROOM coal_mine
+@DESC
+You are in a coal mine. The
+walls are streaked with black
+veins of coal. Among the dark
+rubble, something catches the
+light of your lantern with
+an unmistakable brilliance.
+@ENDDESC
+@ITEM diamond "Huge Diamond" "An enormous diamond. It sparkles with incredible fire."
+@CHOICE "Go south" -> mine_shaft
+@CHOICE "Go north" -> cellar
+
+@ROOM thief_lair
+@DESC
+This appears to be the lair of
+a large thief. Strewn about
+are fine furnishings evidently
+stolen from some mansion. The
+thief himself eyes you from
+across the room, a stiletto
+in his hand.
+@IF has_sword
+Your elvish sword blazes with
+blue light at the danger!
+@ENDIF
+@ENDDESC
+@CHOICE "Fight with sword" -> thief_defeated @NEED has_sword
+@CHOICE "Try to negotiate" -> thief_robs
+@CHOICE "Retreat" -> mine_shaft
+
+@ROOM thief_defeated
+@DESC
+Your elvish blade flashes in
+the lamplight! The thief
+parries once, twice, but on
+the third stroke you disarm
+him completely. He flees into
+the darkness, leaving behind
+an ornate gold coffin.
+@ENDDESC
+@SCORE +25
+@ON_ENTER @SET thief_dead
+@ITEM gold_coffin "Gold Coffin" "An ornate gold coffin inlaid with lapis lazuli."
+@CHOICE "Go north" -> mine_shaft
+
+@ROOM thief_robs
+@DESC
+You attempt to reason with the
+thief. He listens with apparent
+interest, then deftly relieves
+you of all your possessions
+and vanishes into the shadows.
+You really should have expected
+that.
+@ENDDESC
+@GAMEOVER "The thief robbed you blind. A sword might have helped."
+
+@ROOM trophy_case
+@DESC
+You stand before the glass
+trophy case. It is a handsome
+case, clearly designed to hold
+three great treasures. A plaque
+reads: "For Adventurer's Use."
+@IF placed_egg
+The jeweled egg glitters
+inside the case.
+@ENDIF
+@IF placed_coffin
+The gold coffin gleams darkly.
+@ENDIF
+@IF placed_all
+All three treasures rest within!
+The case radiates with light.
+@ENDIF
+@ENDDESC
+@CHOICE "Place jeweled egg" -> deposit_egg @NEED jeweled_egg
+@CHOICE "Continue depositing" -> gate_coffin @NEED placed_egg
+@CHOICE "Go to living room" -> living_room
+
+@ROOM deposit_egg
+@DESC
+You carefully place the jeweled
+egg in the trophy case. It
+catches the light and throws
+tiny rainbows across the room.
+One treasure down.
+@ENDDESC
+@SCORE +10
+@ON_ENTER @SET placed_egg
+@CHOICE "Continue" -> gate_coffin @USE jeweled_egg
+
+@ROOM gate_coffin
+@DESC
+The trophy case holds the
+jeweled egg. Two spaces remain
+for the gold coffin and the
+enormous diamond.
+@ENDDESC
+@CHOICE "Place gold coffin" -> deposit_coffin @NEED gold_coffin
+@CHOICE "Continue depositing" -> gate_diamond @NEED placed_coffin
+@CHOICE "Go find more treasure" -> living_room
+
+@ROOM deposit_coffin
+@DESC
+The gold coffin fits neatly
+into the case. Lapis lazuli
+inlays shimmer in the lamplight.
+Your collection is growing.
+Two down, one to go.
+@ENDDESC
+@SCORE +10
+@ON_ENTER @SET placed_coffin
+@CHOICE "Continue" -> gate_diamond @USE gold_coffin
+
+@ROOM gate_diamond
+@DESC
+Egg and coffin gleam in the
+trophy case. One space remains
+for the final treasure: the
+enormous diamond.
+@ENDDESC
+@CHOICE "Place the diamond" -> deposit_diamond @NEED diamond
+@CHOICE "Go find the diamond" -> living_room
+
+@ROOM deposit_diamond
+@DESC
+You set the enormous diamond
+in the case. It catches every
+photon of light in the room
+and hurls it back tenfold.
+All three treasures blaze with
+an ancient power. The case hums.
+@ENDDESC
+@SCORE +10
+@ON_ENTER @SET placed_all
+@CHOICE "Claim your reward" -> victory @USE diamond
+
+@ROOM victory
+@DESC
+Congratulations, Adventurer!
+Having placed all treasures in
+the trophy case, you are now
+the rightful master of the
+Great Underground Empire.
+
+Your wisdom and bravery are
+the stuff of legend. ZORK has
+been conquered!
+@ENDDESC
+@SCORE +50
+@WIN "Master of the Great Underground Empire! Score: {score}"

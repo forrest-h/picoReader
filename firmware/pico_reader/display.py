@@ -1,0 +1,387 @@
+import displayio
+from adafruit_display_text import label
+from adafruit_display_shapes.rect import Rect
+from .constants import (DISPLAY_WIDTH, DISPLAY_HEIGHT, MENU_TITLE_POS,
+    MENU_SLOTS, MENU_SELECT_COLORS, MENU_OTHER_COLORS, MENU_BG)
+from .skins import load_skin
+from .animations import load_animation
+
+
+class Display:
+    def __init__(self, hw_display, backlight, font, smallfont, skin_name='default'):
+        self.display = hw_display
+        self.backlight = backlight
+        self._font = font
+        self._smallfont = smallfont
+        self._animation = None  # legacy single ref
+        self._animations = {}   # name -> Animation instance
+        self._font_dirty = False
+        self._skin_menu = False
+        self._set_skin(skin_name)
+
+    def _set_skin(self, skin_name):
+        SkinClass = load_skin(skin_name)
+        self.skin = SkinClass(self._font, self._smallfont)
+        self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+        self._base_group_size = len(self.reader_group)
+        self._font_dirty = False
+        self._rebuild_menu_group()
+
+    def _rebuild_menu_group(self):
+        """Rebuild menu group, delegating to skin if it provides menu rendering."""
+        if hasattr(self.skin, 'build_menu_group'):
+            self.menu_group = self.skin.build_menu_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+            self._skin_menu = True
+        else:
+            self._build_default_menu_group()
+            self._skin_menu = False
+
+    def set_font(self, font):
+        """Set a new reading font. Takes effect on next show_reader_screen()."""
+        self._font = font
+        self._font_dirty = True
+
+    def _build_default_menu_group(self):
+        self.menu_group = displayio.Group()
+
+        # [0] background
+        menu_bmp = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
+        self._menu_bg_palette = displayio.Palette(1)
+        self._menu_bg_palette[0] = MENU_BG
+        self.menu_group.append(
+            displayio.TileGrid(menu_bmp, pixel_shader=self._menu_bg_palette))
+
+        # [1] title
+        title_lbl = label.Label(self._font, text='picoReader', color=0xffffff,
+                                base_alignment=False)
+        title_lbl.anchor_point = (0.5, 0.5)
+        title_lbl.anchored_position = MENU_TITLE_POS
+        self.menu_group.append(title_lbl)
+
+        # [2..] 3 slots: each has 1 rect + 3 labels (title, author, series)
+        self._menu_slots = []
+        for y, h in MENU_SLOTS:
+            rect = Rect(4, y, 152, h, fill=MENU_BG, outline=0x3b3b3b, stroke=2)
+            self.menu_group.append(rect)
+            slot_labels = []
+            for offset in [10, 20, 30]:
+                lbl = label.Label(self._smallfont, text='', color=0x909090,
+                                  base_alignment=True)
+                lbl.anchor_point = (0.5, 0.5)
+                lbl.anchored_position = (80, y + offset)
+                self.menu_group.append(lbl)
+                slot_labels.append(lbl)
+            self._menu_slots.append((rect, slot_labels))
+
+    # --- Reader display (delegated to skin) ---
+
+    def show_word(self, word, orp_mode=None):
+        self.skin.show_word(word, orp_mode)
+
+    def show_wpm(self, wpm):
+        self.skin.show_wpm(wpm)
+
+    def update_progress(self, line_num, book_len):
+        if book_len > 0:
+            self.skin.update_progress(line_num / book_len)
+
+    def reset_progress(self):
+        self.skin.reset_progress()
+
+    def set_palette(self, index):
+        """Apply a palette by index to the current skin."""
+        self.skin.apply_palette(index)
+
+    def set_skin(self, skin_name):
+        """Switch to a different skin."""
+        self._set_skin(skin_name)
+
+    def set_cursor_visible(self, visible):
+        """Set cursor visibility if the skin supports it."""
+        if hasattr(self.skin, 'set_cursor_visible'):
+            self.skin.set_cursor_visible(visible)
+
+    def set_book_title(self, title):
+        """Pass book title to skin if it supports title display."""
+        if hasattr(self.skin, 'set_book_title'):
+            self.skin.set_book_title(title)
+
+    # --- Animation lifecycle ---
+
+    def set_animation(self, name):
+        """Legacy: set a single animation (clears all first)."""
+        self._clear_all_animations()
+        if name and name != 'off':
+            self.toggle_animation(name)
+
+    def toggle_animation(self, name):
+        """Toggle an animation on/off. Returns True if now on, False if off."""
+        if name in self._animations:
+            # Turn off -- remove elements and destroy
+            anim = self._animations.pop(name)
+            for elem in getattr(anim, '_elements', []):
+                try:
+                    self.reader_group.remove(elem)
+                except ValueError:
+                    pass
+            anim.destroy()
+            self._animation = None
+            return False
+        else:
+            # Turn on (limit 2 concurrent for RAM)
+            if len(self._animations) >= 2:
+                return False
+            anim = load_animation(name)
+            if anim is not None:
+                elements = anim.build(self)
+                anim._elements = elements  # stash for removal
+                for elem in elements:
+                    self.reader_group.append(elem)
+                self._animations[name] = anim
+                self._animation = anim  # legacy compat
+            return True
+
+    def _clear_all_animations(self):
+        """Remove all active animations."""
+        for anim_name in list(self._animations.keys()):
+            anim = self._animations.pop(anim_name)
+            for elem in getattr(anim, '_elements', []):
+                try:
+                    self.reader_group.remove(elem)
+                except ValueError:
+                    pass
+            anim.destroy()
+        self._animation = None
+        # Safety: remove any lingering elements past base group
+        base = getattr(self, '_base_group_size', 8)
+        while len(self.reader_group) > base:
+            self.reader_group.pop()
+
+    def tick_animation(self, state, book):
+        """Called after each word display, before refresh."""
+        for anim in self._animations.values():
+            anim.tick(state, book, self)
+
+    def show_reader_screen(self):
+        if self._font_dirty:
+            palette_idx = self.skin._palette_index
+            self.skin = self.skin.__class__(self._font, self._smallfont)
+            self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+            self._base_group_size = len(self.reader_group)
+            self.skin.apply_palette(palette_idx)
+            self._rebuild_menu_group()
+            # Re-attach active animations to the new group
+            for anim in self._animations.values():
+                elements = anim.build(self)
+                anim._elements = elements
+                for elem in elements:
+                    self.reader_group.append(elem)
+            self._font_dirty = False
+        self.display.show(self.reader_group)
+        self.display.refresh()
+
+    # --- Menu display ---
+
+    def _clear_menu_slots(self):
+        """Clear all menu slot labels."""
+        for rect, slot_labels in self._menu_slots:
+            rect.fill = MENU_BG
+            rect.outline = 0x3b3b3b
+            for lbl in slot_labels:
+                lbl.text = ''
+                lbl.color = 0x909090
+
+    def show_menu_screen(self, menu_state, book_metadata):
+        """Update menu group from MenuState and refresh display.
+
+        Args:
+            menu_state: MenuState instance with current position
+            book_metadata: full metadata list for resolving book details
+        """
+        items, cursor = menu_state.visible_items()
+        breadcrumb_text = menu_state.breadcrumb()
+
+        if self._skin_menu:
+            self.skin.update_menu(items, cursor, breadcrumb_text, book_metadata)
+            self.display.show(self.menu_group)
+            self.display.refresh()
+            return
+
+        # --- Default menu rendering ---
+
+        # Update title bar
+        self.menu_group[1].text = breadcrumb_text
+
+        # Empty category
+        if not items:
+            self._clear_menu_slots()
+            self._menu_slots[1][1][0].text = "(Empty)"
+            self.display.show(self.menu_group)
+            self.display.refresh()
+            return
+
+        total = len(items)
+        if cursor <= 1:
+            window_start = 0
+            highlighted_slot = cursor
+        else:
+            window_start = cursor - 1
+            highlighted_slot = 1
+
+        for slot_idx in range(3):
+            item_idx = window_start + slot_idx
+            rect, slot_labels = self._menu_slots[slot_idx]
+            is_selected = (slot_idx == highlighted_slot)
+            txt_c, bg_c, bdr_c = MENU_SELECT_COLORS if is_selected else MENU_OTHER_COLORS
+            rect.fill = bg_c
+            rect.outline = bdr_c
+            for lbl in slot_labels:
+                lbl.color = txt_c
+
+            if 0 <= item_idx < total:
+                node = items[item_idx]
+                if node.book_id is not None:
+                    # Book leaf -- show title + author
+                    meta = book_metadata[node.book_id]
+                    slot_labels[0].text = meta[0]  # title
+                    slot_labels[1].text = meta[1]  # author
+                    slot_labels[2].text = meta[2] if slot_idx < 2 else ''  # series
+                elif getattr(node, 'setting_key', None) is not None:
+                    # Settings leaf -- show label only
+                    slot_labels[0].text = node.label
+                    slot_labels[1].text = ''
+                    slot_labels[2].text = ''
+                else:
+                    # Category node -- show label + child count
+                    slot_labels[0].text = node.label
+                    child_count = len(node.children) if node.children else 0
+                    slot_labels[1].text = "({})".format(child_count)
+                    slot_labels[2].text = ''
+            else:
+                for lbl in slot_labels:
+                    lbl.text = ''
+
+        self.display.show(self.menu_group)
+        self.display.refresh()
+
+    # --- Stats display ---
+
+    def show_stats_screen(self, book_stats, session_stats, total_wordcount, current_wpm):
+        """Show analytics screen with book and session stats."""
+        group = displayio.Group()
+
+        # Background
+        bg_bmp = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
+        bg_palette = displayio.Palette(1)
+        bg_palette[0] = MENU_BG
+        group.append(displayio.TileGrid(bg_bmp, pixel_shader=bg_palette))
+
+        lines = []
+        if book_stats is None:
+            lines.append(("No stats yet", 0xffffff))
+        else:
+            # Book stats section
+            lines.append(("Book Stats", 0xffffff))
+            lines.append(("Words: {}".format(book_stats.words_read), 0xaaaaaa))
+            lines.append(("Sessions: {}".format(book_stats.sessions), 0xaaaaaa))
+            if total_wordcount > 0:
+                pct = book_stats.completion_pct(total_wordcount)
+                lines.append(("Complete: {}%".format(pct), 0xaaaaaa))
+                est = book_stats.estimated_minutes(current_wpm, total_wordcount)
+                lines.append(("~{} min left".format(est), 0xaaaaaa))
+            lines.append(("", 0xaaaaaa))  # blank spacer
+
+            # Session stats section
+            if session_stats is not None:
+                lines.append(("This Session", 0xffffff))
+                avg = session_stats.average_wpm()
+                lines.append(("Words: {}  Avg: {}".format(session_stats.words, avg), 0xaaaaaa))
+                mins = session_stats.reading_time_minutes()
+                lines.append(("Time: {} min".format(mins), 0xaaaaaa))
+
+        y_start = 10
+        y_step = 14
+        for i, (text, color) in enumerate(lines):
+            lbl = label.Label(self._smallfont, text=text, color=color,
+                              base_alignment=True)
+            lbl.anchor_point = (0.5, 0.0)
+            lbl.anchored_position = (DISPLAY_WIDTH // 2, y_start + i * y_step)
+            group.append(lbl)
+
+        self.display.show(group)
+        self.display.refresh()
+
+    # --- Jump mode display ---
+
+    def show_jump_screen(self, pct):
+        """Show jump mode overlay: 'Jump: XX%' centered on reader screen."""
+        self.skin.show_word("Jump: {}%".format(pct))
+        self.skin.show_wpm("CENTER=go UP=cancel")
+        self.display.show(self.reader_group)
+        self.display.refresh()
+
+    # --- Brightness ---
+
+    # --- Game select display ---
+
+    def show_game_select_screen(self, cursor):
+        """Show game selection screen with highlighted cursor."""
+        from .games import GAME_LIST
+        group = displayio.Group()
+
+        # Background
+        bg_bmp = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
+        bg_palette = displayio.Palette(1)
+        bg_palette[0] = MENU_BG
+        group.append(displayio.TileGrid(bg_bmp, pixel_shader=bg_palette))
+
+        # Title
+        title_lbl = label.Label(self._smallfont, text="Games",
+                                color=0xffffff, base_alignment=False)
+        title_lbl.anchor_point = (0.5, 0.5)
+        title_lbl.anchored_position = MENU_TITLE_POS
+        group.append(title_lbl)
+
+        # Compact list with scrolling window
+        total = len(GAME_LIST)
+        max_visible = 8
+        y_start = 22
+        y_step = 13
+
+        # Calculate window to keep cursor visible
+        if total <= max_visible:
+            window_start = 0
+        elif cursor < max_visible // 2:
+            window_start = 0
+        elif cursor >= total - max_visible // 2:
+            window_start = total - max_visible
+        else:
+            window_start = cursor - max_visible // 2
+
+        for slot in range(min(max_visible, total)):
+            i = window_start + slot
+            if i >= total:
+                break
+            name, _module = GAME_LIST[i]
+            is_selected = (i == cursor)
+            y = y_start + slot * y_step
+            if is_selected:
+                sel_rect = Rect(8, y - 1, DISPLAY_WIDTH - 16, 13,
+                                fill=MENU_SELECT_COLORS[1])
+                group.append(sel_rect)
+            lbl = label.Label(self._smallfont, text=name,
+                              color=MENU_SELECT_COLORS[0] if is_selected
+                              else MENU_OTHER_COLORS[0],
+                              base_alignment=True)
+            lbl.anchor_point = (0.5, 0.0)
+            lbl.anchored_position = (80, y)
+            group.append(lbl)
+
+        self.display.show(group)
+        self.display.refresh()
+
+    def set_brightness(self, brightness):
+        self.backlight.duty_cycle = int(brightness / 100 * 65535)
+
+    def refresh(self):
+        self.display.refresh()

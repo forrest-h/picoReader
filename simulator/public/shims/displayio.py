@@ -47,18 +47,59 @@ class Bitmap:
 
 
 class TileGrid:
-    def __init__(self, bitmap, pixel_shader=None, x=0, y=0, **kwargs):
+    def __init__(self, bitmap, pixel_shader=None, x=0, y=0,
+                 tile_width=None, tile_height=None, **kwargs):
         self.bitmap = bitmap
         self.pixel_shader = pixel_shader
         self.x = x
         self.y = y
+        self.tile_width = tile_width or bitmap.width
+        self.tile_height = tile_height or bitmap.height
+        self._tiles = [0]
+
+    def __setitem__(self, index, value):
+        if index >= len(self._tiles):
+            self._tiles.extend([0] * (index + 1 - len(self._tiles)))
+        self._tiles[index] = value
+
+    def __getitem__(self, index):
+        if index >= len(self._tiles):
+            return 0
+        return self._tiles[index]
 
     def serialize(self):
         bmp = self.bitmap
         pal = self.pixel_shader
         palette_colors = list(pal._colors) if pal else [0]
 
-        # Check if bitmap has any non-zero pixel (i.e. it has per-pixel data)
+        tw = self.tile_width
+        th = self.tile_height
+
+        # If using tiles (sprite sheet), extract only the active tile's pixels
+        if tw != bmp.width or th != bmp.height:
+            tile_idx = self._tiles[0] if self._tiles else 0
+            cols = bmp.width // tw
+            tile_col = tile_idx % cols
+            tile_row = tile_idx // cols
+            tile_data = []
+            for row in range(th):
+                src_y = tile_row * th + row
+                for col in range(tw):
+                    src_x = tile_col * tw + col
+                    tile_data.append(bmp._data[src_y * bmp.width + src_x])
+            node = {
+                "type": "tilegrid",
+                "x": self.x,
+                "y": self.y,
+                "w": tw,
+                "h": th,
+                "paletteColors": palette_colors,
+            }
+            if any(v != 0 for v in tile_data):
+                node["bitmapData"] = tile_data
+            return node
+
+        # Non-tiled: send full bitmap
         has_pixel_data = any(v != 0 for v in bmp._data)
 
         node = {
@@ -88,6 +129,9 @@ class Group:
 
     def __getitem__(self, index):
         return self._children[index]
+
+    def pop(self, index=-1):
+        return self._children.pop(index)
 
     def __len__(self):
         return len(self._children)

@@ -1,13 +1,13 @@
 """Tracks application state and sends updates to the main thread.
 
-The state tracker is initialized after code_v2.py creates its objects.
+The state tracker is initialized after code.py creates its objects.
 We hook into it by having the worker set references after main() starts.
 For now, we use a polling approach: on each display.refresh(), we try
 to read state from well-known global variables.
 """
 from _bridge import post_message
 
-# These get set by a small wrapper around code_v2.py's main()
+# These get set by a small wrapper around code.py's main()
 _app_state = None
 _book_reader = None
 _book_metadata = None
@@ -52,5 +52,27 @@ def send_state():
             meta = _book_metadata[_book_reader.book_id]
             msg["bookTitle"] = meta[0] if len(meta) > 0 else ""
             msg["bookAuthor"] = meta[1] if len(meta) > 1 else ""
+
+    # Skin and display settings
+    msg["skinName"] = getattr(_app_state, 'skin_name', 'default')
+    msg["orpMode"] = _app_state.orp_mode if _app_state.orp_mode else 'off'
+    msg["animation"] = _app_state.settings.get('animation', 'off') if hasattr(_app_state, 'settings') else 'off'
+    msg["smartPacing"] = getattr(_app_state, 'smart_pacing', False)
+    msg["fontName"] = getattr(_app_state, 'font_name', 'Toronto_14.pcf')
+
+    # Jump mode
+    msg["jumpPct"] = getattr(_app_state, 'jump_pct', 0)
+
+    # Chapter info from book_reader
+    if _book_reader is not None and hasattr(_book_reader, 'chapters'):
+        msg["chapterIndex"] = _book_reader.chapter_index
+        msg["chapterCount"] = len(_book_reader.chapters)
+        if _book_reader.chapter_index >= 0 and _book_reader.chapter_index < len(_book_reader.chapters):
+            msg["chapterTitle"] = _book_reader.chapters[_book_reader.chapter_index][1]
+
+    if _app_state.menu_state:
+        msg["menuBreadcrumb"] = _app_state.menu_state.breadcrumb()
+        msg["menuCursor"] = _app_state.menu_state.cursor
+        msg["menuDepth"] = len(_app_state.menu_state.path) - 1
 
     post_message(msg)
