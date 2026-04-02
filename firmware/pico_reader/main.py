@@ -168,7 +168,7 @@ def main():
                 if sk and sk.startswith('anim_'):
                     anim_name = sk[5:]
                     on = anim_name in state.active_animations
-                    display_name = anim_name.replace('_', ' ').title()
+                    display_name = ' '.join(w[0].upper() + w[1:] for w in anim_name.split('_'))
                     child.label = "{}: {}".format(display_name, 'ON' if on else 'off')
 
     disp = Display(hw_display, backlight, font, smallfont,

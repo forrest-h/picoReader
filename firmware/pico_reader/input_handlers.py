@@ -248,7 +248,7 @@ def _setting_label(state, disp, key):
     elif key.startswith('anim_'):
         anim_name = key[5:]
         on = anim_name in state.active_animations
-        display_name = anim_name.replace('_', ' ').title()
+        display_name = ' '.join(w[0].upper() + w[1:] for w in anim_name.split('_'))
         return "{}: {}".format(display_name, 'ON' if on else 'off')
     elif key == 'font':
         return "Font: {}".format(state.font_name.split('.')[0])
