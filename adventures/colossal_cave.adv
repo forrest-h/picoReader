@@ -1,0 +1,373 @@
+@TITLE Colossal Cave
+@AUTHOR Adapted from Crowther & Woods
+@START road
+@DESC_TEXT Classic cave exploration adventure.
+
+@ROOM road
+@DESC
+You are standing at the end of a road
+before a small brick building. Around
+you is a forest. A small stream flows
+out of the building and down a gully.
+@ENDDESC
+@CHOICE "Enter the building" -> building
+@CHOICE "Walk down the gully" -> valley
+@CHOICE "Enter the forest" -> forest
+
+@ROOM building
+@DESC
+You are inside a well house for a large
+spring. There are some keys here, and a
+lamp on a shelf. A note reads: "MAGIC
+WORD: XYZZY"
+@ENDDESC
+@ITEM keys "Set of Keys" "Brass keys on a worn leather ring."
+@ITEM lamp "Brass Lamp" "A battered but sturdy oil lamp. It has plenty of fuel."
+@ON_ENTER @SET know_xyzzy
+@CHOICE "Take supplies and go outside" -> road
+@CHOICE "Say XYZZY" -> debris_room @NEED know_xyzzy
+@SCORE +5
+
+@ROOM forest
+@DESC
+You are in a dense forest. The trees are
+too thick to see far. You hear birds and
+the distant sound of water. All paths
+seem to lead back to the road.
+@ENDDESC
+@CHOICE "Go back to the road" -> road
+
+@ROOM valley
+@DESC
+You are in a shallow valley with a stream
+running through it. The stream disappears
+into a slit in the rock at the base of
+a cliff. A grate is set into the ground.
+@ENDDESC
+@CHOICE "Open the grate" -> below_grate @NEED keys
+@CHOICE "Follow the stream" -> slit
+@CHOICE "Go back to the road" -> road
+
+@ROOM slit
+@DESC
+At the base of the cliff, the stream
+flows through a 2-inch slit in the rock.
+You cannot fit through, but you hear
+echoes of a vast space beyond.
+@ENDDESC
+@CHOICE "Go back" -> valley
+
+@ROOM below_grate
+@DESC
+You are in a small chamber beneath a
+steel grate which casts bars of light
+on the floor. A low crawl leads west.
+@ENDDESC
+@ON_ENTER @SET entered_cave
+@SCORE +10
+@CHOICE "Crawl west" -> cobble_crawl @NEED lamp
+@CHOICE "Go back up" -> valley
+@CHOICE "Try crawling in the dark" -> dark_fall @NEED !lamp
+
+@ROOM dark_fall
+@DESC
+You stumble in the pitch darkness and
+fall into a pit. You should have brought
+a light.
+@ENDDESC
+@GAMEOVER "It is pitch dark. You fell into a pit."
+
+@ROOM cobble_crawl
+@DESC
+You are crawling over cobbles in a low
+passage. There is a dim light at the
+east end of the passage. The passage
+opens up to the west.
+@ENDDESC
+@CHOICE "Go west" -> debris_room
+@CHOICE "Go back east" -> below_grate
+
+@ROOM debris_room
+@DESC
+You are in a debris room filled with
+stuff washed in from the surface. A low
+wide passage goes east, and a canyon
+leads north. A note says "MAGIC WORD:
+XYZZY".
+@ENDDESC
+@ITEM food "Tasty Food" "Emergency rations: dried meat, biscuits, and chocolate."
+@CHOICE "Go east" -> cobble_crawl
+@CHOICE "Go north" -> awk_canyon
+@CHOICE "Say XYZZY" -> building @NEED know_xyzzy
+@SCORE +5
+
+@ROOM awk_canyon
+@DESC
+You are in an awkward sloping east/west
+canyon. A note on the wall says "MAGIC
+WORD: PLUGH".
+@ENDDESC
+@ON_ENTER @SET know_plugh
+@CHOICE "Go east (up)" -> bird_chamber
+@CHOICE "Go west (down)" -> debris_room
+
+@ROOM bird_chamber
+@DESC
+You are in a splendid chamber thirty
+feet high. The walls are covered with
+cave formations. A cheerful little bird
+is singing in a cage near the passage.
+@ENDDESC
+@ITEM bird "Caged Bird" "A small songbird with brilliant blue and gold plumage."
+@CHOICE "Go south" -> awk_canyon
+@CHOICE "Go west" -> pit_top
+
+@ROOM pit_top
+@DESC
+You are at the top of a small pit
+breathing traces of white mist. A rough
+stone stairway leads down into the pit.
+East is a passageway. There is a large
+"DANGER" sign posted nearby.
+@ENDDESC
+@CHOICE "Go down" -> hall_of_mists
+@CHOICE "Go east" -> bird_chamber
+
+@ROOM hall_of_mists
+@DESC
+You are at one end of a vast hall
+stretching forward out of sight. The
+hall is filled with wisps of white mist
+swaying to and fro. Rough-hewn stone
+steps lead up to a dome.
+@ENDDESC
+@SCORE +15
+@CHOICE "Go south" -> nugget_room
+@CHOICE "Go east" -> fissure
+@CHOICE "Go up" -> pit_top
+@CHOICE "Say PLUGH" -> building @NEED know_plugh
+
+@ROOM nugget_room
+@DESC
+This is a low room with a crude note
+on the wall. It says: "You won't get
+it up the steps." In the center of the
+room lies a large sparkling gold nugget!
+@ENDDESC
+@ITEM gold_nugget "Gold Nugget" "A fist-sized chunk of pure gold, surprisingly heavy."
+@SCORE +20
+@CHOICE "Go north" -> hall_of_mists
+
+@ROOM fissure
+@DESC
+You are on the east bank of a fissure
+which splits the hall. The mist is quite
+thick here, obscuring all detail. A
+narrow crystal bridge spans the gap.
+@IF diamond
+The bridge shimmers more brightly as
+you approach with the diamond.
+@ENDIF
+@ENDDESC
+@CHOICE "Cross the bridge" -> west_fissure
+@CHOICE "Go west" -> hall_of_mists
+
+@ROOM west_fissure
+@DESC
+You are on the west side of the fissure.
+A low wide passage goes west. Rough
+stone steps lead down into the darkness.
+@ENDDESC
+@CHOICE "Go west" -> west_hall
+@CHOICE "Go down" -> deep_cave
+@CHOICE "Cross back" -> fissure
+
+@ROOM west_hall
+@DESC
+You are at the west end of the hall of
+mists. A low passage continues west
+and another goes north. The mists thin
+here and you can see further.
+@ENDDESC
+@CHOICE "Go north" -> long_hall
+@CHOICE "Go south" -> west_fissure
+
+@ROOM long_hall
+@DESC
+You are in a long hall with a rounded
+ceiling. Several rough passages lead
+off in various directions.
+@ENDDESC
+@CHOICE "Go east" -> crossover
+@CHOICE "Go south" -> west_hall
+
+@ROOM crossover
+@DESC
+You are at a crossover of a high north/
+south passage and a low east/west one.
+@ENDDESC
+@CHOICE "Go north" -> dead_end_diamonds
+@CHOICE "Go south" -> long_hall
+@CHOICE "Go east" -> swiss_cheese
+
+@ROOM dead_end_diamonds
+@DESC
+You have reached a dead end. There is a
+large collection of diamonds scattered
+on the floor, glittering in the lamplight
+like a thousand tiny stars.
+@ENDDESC
+@ITEM diamond "Diamonds" "A handful of brilliant cut diamonds. Worth a fortune."
+@SCORE +25
+@CHOICE "Go south" -> crossover
+
+@ROOM swiss_cheese
+@DESC
+You are in a room whose walls resemble
+Swiss cheese. Passages lead in many
+directions, most too small to follow.
+One wider passage leads east.
+@ENDDESC
+@CHOICE "Go east" -> troll_bridge
+@CHOICE "Go west" -> crossover
+
+@ROOM troll_bridge
+@DESC
+You are at one end of a narrow bridge
+spanning a bottomless chasm. A massive
+troll blocks the way across. He demands
+payment to let you pass.
+@ENDDESC
+@CHOICE "Throw food to the troll" -> across_bridge @NEED food
+@CHOICE "Try to fight the troll" -> troll_fight
+@CHOICE "Go back" -> swiss_cheese
+
+@ROOM troll_fight
+@DESC
+The troll swats you aside like a fly.
+You land hard on the stone floor.
+Violence is not the answer here.
+@ENDDESC
+@CHOICE "Try something else" -> troll_bridge
+
+@ROOM across_bridge
+@DESC
+The troll catches the food, examines it,
+grunts with satisfaction, and lumbers
+away into the darkness. The bridge is
+now clear.
+@ENDDESC
+@ON_ENTER @SET troll_fed
+@SCORE +15
+@CHOICE "Cross the bridge" -> treasure_hall @USE food
+
+@ROOM deep_cave
+@DESC
+You are deep underground. The air is
+stale and warm. Strange glowing fungi
+cling to the walls, providing an eerie
+green illumination. A passage leads
+further down.
+@ENDDESC
+@CHOICE "Go deeper" -> dragon_lair
+@CHOICE "Go back up" -> west_fissure
+
+@ROOM dragon_lair
+@DESC
+A massive red dragon lies coiled around
+an enormous pile of treasure. One yellow
+eye opens as you approach. Smoke curls
+from its nostrils.
+@IF bird
+The bird begins to sing a hauntingly
+beautiful melody. The dragon closes
+its eye and falls into a deep sleep.
+@ENDIF
+@ENDDESC
+@CHOICE "Sing with the bird" -> dragon_sleep @NEED bird
+@CHOICE "Try to sneak past" -> dragon_angry @NEED !bird
+@CHOICE "Retreat" -> deep_cave
+
+@ROOM dragon_angry
+@DESC
+The dragon opens its maw and a wall of
+flame engulfs the passage. There is no
+escape.
+@ENDDESC
+@GAMEOVER "The dragon's fire was inescapable. Perhaps a songbird could soothe the beast."
+
+@ROOM dragon_sleep
+@DESC
+As the bird sings, the dragon's breathing
+slows and deepens. It sleeps soundly now.
+Among its hoard you spot an ornate golden
+chalice encrusted with rubies.
+@ENDDESC
+@ITEM chalice "Golden Chalice" "A magnificent chalice of hammered gold set with rubies."
+@ON_ENTER @SET dragon_asleep
+@SCORE +30
+@CHOICE "Go back carefully" -> deep_cave
+
+@ROOM treasure_hall
+@DESC
+You emerge into a magnificent hall of
+carved stone. Ancient stalactites hang
+from the ceiling like chandeliers. The
+walls are covered in primitive paintings
+depicting great treasures.
+@ENDDESC
+@ITEM silver_bars "Silver Bars" "Three bars of pure silver, stamped with ancient runes."
+@SCORE +20
+@CHOICE "Go deeper" -> final_chamber
+@CHOICE "Go back" -> across_bridge
+
+@ROOM final_chamber
+@DESC
+You stand in the innermost chamber of
+Colossal Cave. A natural skylight far
+above lets in a shaft of sunlight. In
+the center, a stone altar holds an
+ancient crown.
+@IF gold_nugget
+@IF diamond
+@IF chalice
+The crown begins to glow as you approach
+with the treasures. The cave hums with
+ancient power.
+@ENDIF
+@ENDIF
+@ENDIF
+@ENDDESC
+@ITEM crown "Ancient Crown" "A platinum crown set with a flawless star sapphire."
+@CHOICE "Place treasures on the altar" -> victory @NEED gold_nugget @NEED diamond @NEED chalice
+@CHOICE "Take the crown and leave" -> exit_cave
+@SCORE +25
+
+@ROOM exit_cave
+@DESC
+Clutching the crown, you retrace your
+steps through the winding cave. The
+bird sings as you emerge into the
+sunlight at the well house.
+
+You have explored Colossal Cave and
+lived to tell the tale!
+@ENDDESC
+@SCORE +10
+@WIN "You escaped with the crown! Score: {score}"
+
+@ROOM victory
+@DESC
+You place the gold nugget, diamonds, and
+chalice on the altar. The crown lifts
+into the air, blazing with light. The
+cave fills with a thunderous voice:
+
+"WORTHY ADVENTURER! THE TREASURES ARE
+YOURS. GO FORTH WITH MY BLESSING."
+
+The ground trembles and a passage opens
+leading directly to the surface.
+@ENDDESC
+@SCORE +50
+@WIN "You conquered Colossal Cave with all treasures! Score: {score}"

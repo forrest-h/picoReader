@@ -342,22 +342,39 @@ class Display:
         title_lbl.anchored_position = MENU_TITLE_POS
         group.append(title_lbl)
 
-        # Game items
-        y_start = 45
-        y_step = 30
-        for i, (name, _module) in enumerate(GAME_LIST):
+        # Compact list with scrolling window
+        total = len(GAME_LIST)
+        max_visible = 8
+        y_start = 22
+        y_step = 13
+
+        # Calculate window to keep cursor visible
+        if total <= max_visible:
+            window_start = 0
+        elif cursor < max_visible // 2:
+            window_start = 0
+        elif cursor >= total - max_visible // 2:
+            window_start = total - max_visible
+        else:
+            window_start = cursor - max_visible // 2
+
+        for slot in range(min(max_visible, total)):
+            i = window_start + slot
+            if i >= total:
+                break
+            name, _module = GAME_LIST[i]
             is_selected = (i == cursor)
+            y = y_start + slot * y_step
             if is_selected:
-                sel_rect = Rect(20, y_start + i * y_step - 10, 120, 22,
-                                fill=MENU_SELECT_COLORS[1],
-                                outline=MENU_SELECT_COLORS[2], stroke=2)
+                sel_rect = Rect(8, y - 1, DISPLAY_WIDTH - 16, 13,
+                                fill=MENU_SELECT_COLORS[1])
                 group.append(sel_rect)
             lbl = label.Label(self._smallfont, text=name,
                               color=MENU_SELECT_COLORS[0] if is_selected
                               else MENU_OTHER_COLORS[0],
-                              base_alignment=False)
-            lbl.anchor_point = (0.5, 0.5)
-            lbl.anchored_position = (80, y_start + i * y_step)
+                              base_alignment=True)
+            lbl.anchor_point = (0.5, 0.0)
+            lbl.anchored_position = (80, y)
             group.append(lbl)
 
         self.display.show(group)
