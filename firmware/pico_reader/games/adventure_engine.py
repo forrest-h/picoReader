@@ -63,6 +63,7 @@ class AdventureEngine:
         self._si = False
         self._ic = 0
         self._ended = False
+        self._dirty = False
         self._build_idx()
         bmp = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
         pal = displayio.Palette(1)
@@ -262,7 +263,7 @@ class AdventureEngine:
         self._ds = 0
         self._cc = 0
         self._foc = 'c'
-        self._render()
+        self._dirty = True
         self._save()
 
     def _cn(self, need):
@@ -383,6 +384,10 @@ class AdventureEngine:
         return None
 
     def tick(self, now):
+        if self._dirty:
+            self._dirty = False
+            self._render()
+            return True
         return False
 
     def _ri(self):
