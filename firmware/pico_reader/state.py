@@ -45,6 +45,8 @@ class AppState:
     MODE_JUMP = 3
     MODE_BRIGHTNESS = 4
     MODE_STATS = 5
+    MODE_PALETTE = 6
+    MODE_FONT = 7
 
     def __init__(self, settings=None):
         self.mode = self.MODE_MENU
@@ -60,6 +62,8 @@ class AppState:
         self.play_start_time = 0.0
         self._next_word_delay = 60.0 / DEFAULT_WPM
         self.jump_pct = 0
+        self.font_preview_idx = 0
+        self.active_animations = set()
         self.menu_state = None  # Set after menu tree is built in main()
         self.orp_mode = None  # None, 'color', or 'bold'
         self.skin_name = 'default'
@@ -78,6 +82,9 @@ class AppState:
                 self.orp_mode = 'bold'
             else:
                 self.orp_mode = None
+            anim_val = settings.get('animation', 'off')
+            if anim_val and anim_val != 'off':
+                self.active_animations = set(anim_val.split(','))
 
     def set_wpm(self, wpm):
         self.wpm = max(10, wpm)

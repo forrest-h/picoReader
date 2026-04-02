@@ -55,32 +55,32 @@ class Skin:
         # [2] word prefix (main word in normal mode)
         self._word_prefix = label.Label(self._font, text='',
                                         color=pal['phosphor'],
-                                        base_alignment=False)
-        self._word_prefix.anchor_point = (0.5, 1)
+                                        base_alignment=True)
+        self._word_prefix.anchor_point = (0.5, 0.0)
         self._word_prefix.anchored_position = (80, 70)
         group.append(self._word_prefix)
 
         # [3] ORP character label
         self._word_orp = label.Label(self._font, text='',
-                                     color=pal['bg'], base_alignment=False)
-        self._word_orp.anchor_point = (0.0, 1)
+                                     color=pal['bg'], base_alignment=True)
+        self._word_orp.anchor_point = (0.0, 0.0)
         self._word_orp.anchored_position = (80, 70)
         group.append(self._word_orp)
 
         # [4] word suffix label
         self._word_suffix = label.Label(self._font, text='',
                                         color=pal['phosphor'],
-                                        base_alignment=False)
-        self._word_suffix.anchor_point = (0.0, 1)
+                                        base_alignment=True)
+        self._word_suffix.anchor_point = (0.0, 0.0)
         self._word_suffix.anchored_position = (90, 70)
         group.append(self._word_suffix)
 
         # [5] cursor (visible only when paused)
         self._cursor_label = label.Label(self._font, text='_',
                                          color=pal['phosphor'],
-                                         base_alignment=False)
-        self._cursor_label.anchor_point = (0.5, 1)
-        self._cursor_label.anchored_position = (80, 86)
+                                         base_alignment=True)
+        self._cursor_label.anchor_point = (0.0, 0.0)
+        self._cursor_label.anchored_position = (82, 70)
         self._cursor_label.color = pal['bg']  # Hidden by default
         group.append(self._cursor_label)
 
@@ -109,33 +109,48 @@ class Skin:
         if orp_mode == 'color' and len(word) > 1:
             prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
                 word, self._font)
-            self._word_prefix.anchor_point = (1.0, 1)
+            self._word_prefix.anchor_point = (1.0, 0.0)
             self._word_prefix.anchored_position = (px, 70)
             self._word_prefix.text = prefix
             self._word_prefix.color = pal['phosphor']
-            self._word_orp.anchor_point = (0.5, 1)
+            self._word_orp.anchor_point = (0.5, 0.0)
             self._word_orp.anchored_position = (ox, 70)
             self._word_orp.text = orp_char
             self._word_orp.color = pal['dim']
-            self._word_suffix.anchor_point = (0.0, 1)
+            self._word_suffix.anchor_point = (0.0, 0.0)
             self._word_suffix.anchored_position = (sx, 70)
             self._word_suffix.text = suffix
             self._word_suffix.color = pal['phosphor']
         elif orp_mode == 'bold' and len(word) > 1:
             bold, fade = calc_bold_split(word)
-            self._word_prefix.anchor_point = (0.5, 1)
-            self._word_prefix.anchored_position = (80, 70)
-            self._word_prefix.text = "{:^30}".format(word)
+            bold_w = sum(self._font.get_glyph(ord(c)).shift_x for c in bold)
+            fade_w = sum(self._font.get_glyph(ord(c)).shift_x for c in fade)
+            total_w = bold_w + fade_w
+            split_x = 80 - total_w // 2 + bold_w
+            self._word_prefix.anchor_point = (1.0, 0.0)
+            self._word_prefix.anchored_position = (split_x, 70)
+            self._word_prefix.text = bold
             self._word_prefix.color = pal['phosphor']
             self._word_orp.text = ''
-            self._word_suffix.text = ''
+            self._word_suffix.anchor_point = (0.0, 0.0)
+            self._word_suffix.anchored_position = (split_x, 70)
+            self._word_suffix.text = fade
+            self._word_suffix.color = pal['dim']
         else:
-            self._word_prefix.anchor_point = (0.5, 1)
+            self._word_prefix.anchor_point = (0.5, 0.0)
             self._word_prefix.anchored_position = (80, 70)
             self._word_prefix.text = "{:^30}".format(word)
             self._word_prefix.color = pal['phosphor']
             self._word_orp.text = ''
             self._word_suffix.text = ''
+
+        # Position cursor after end of visible word
+        if word:
+            word_w = sum(self._font.get_glyph(ord(c)).shift_x for c in word)
+            cursor_x = 80 + word_w // 2 + 2
+        else:
+            cursor_x = 82
+        self._cursor_label.anchored_position = (cursor_x, 70)
 
     def show_wpm(self, wpm):
         """Update WPM indicator."""

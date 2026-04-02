@@ -41,8 +41,11 @@ class Animation:
         elements = []
         now = time.monotonic()
         for i in range(NUM_PARTICLES):
-            bmp = displayio.Bitmap(1, 1, 2)
+            bmp = displayio.Bitmap(2, 2, 2)
             bmp[0, 0] = 1
+            bmp[1, 0] = 1
+            bmp[0, 1] = 1
+            bmp[1, 1] = 1
             pal = displayio.Palette(2)
             pal[0] = 0x000000  # transparent
             pal[1] = 0x7c7c7c  # default highlight

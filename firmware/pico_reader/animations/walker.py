@@ -139,10 +139,14 @@ class Animation:
         progress = 0.0
         if book.book_len > 0:
             progress = min(1.0, book.line_num / book.book_len)
-        self._tg.x = _x_for_progress(progress)
+        base_x = _x_for_progress(progress)
+
+        # Add wobble so walker visibly walks even with sub-pixel progress
+        self._tick_count += 1
+        wobble = 1 if self._tick_count % 2 == 0 else -1
+        self._tg.x = max(0, min(DISPLAY_W - SPRITE_W, base_x + wobble))
 
         # Frame from WPM
-        self._tick_count += 1
         self._tg[0] = _frame_for_wpm(state.wpm, self._tick_count)
 
         # Match skin highlight color if available

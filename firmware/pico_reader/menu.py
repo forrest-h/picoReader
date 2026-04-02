@@ -164,7 +164,11 @@ def build_menu_tree(books, book_metadata, recent_filenames):
         MenuNode("Skin", setting_key="skin"),
         MenuNode("Color", setting_key="palette"),
         MenuNode("ORP Mode", setting_key="orp"),
-        MenuNode("Animation", setting_key="animation"),
+        MenuNode("Animation", children=[
+            MenuNode("Walker: off", setting_key="anim_walker"),
+            MenuNode("Particles: off", setting_key="anim_particles"),
+            MenuNode("Page %: off", setting_key="anim_page_turn"),
+        ]),
         MenuNode("Font", setting_key="font"),
         MenuNode("Smart Pacing", setting_key="smart_pacing"),
         MenuNode("Brightness", setting_key="brightness"),

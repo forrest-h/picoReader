@@ -13,7 +13,8 @@ class Display:
         self.backlight = backlight
         self._font = font
         self._smallfont = smallfont
-        self._animation = None
+        self._animation = None  # legacy single ref
+        self._animations = {}   # name -> Animation instance
         self._font_dirty = False
         self._skin_menu = False
         self._set_skin(skin_name)
@@ -103,33 +104,72 @@ class Display:
     # --- Animation lifecycle ---
 
     def set_animation(self, name):
-        """Swap the active animation. Remove old elements, add new ones."""
-        # Remove old animation elements (everything past the skin's base group)
+        """Legacy: set a single animation (clears all first)."""
+        self._clear_all_animations()
+        if name and name != 'off':
+            self.toggle_animation(name)
+
+    def toggle_animation(self, name):
+        """Toggle an animation on/off. Returns True if now on, False if off."""
+        if name in self._animations:
+            # Turn off -- remove elements and destroy
+            anim = self._animations.pop(name)
+            for elem in getattr(anim, '_elements', []):
+                try:
+                    self.reader_group.remove(elem)
+                except ValueError:
+                    pass
+            anim.destroy()
+            self._animation = None
+            return False
+        else:
+            # Turn on (limit 2 concurrent for RAM)
+            if len(self._animations) >= 2:
+                return False
+            anim = load_animation(name)
+            if anim is not None:
+                elements = anim.build(self)
+                anim._elements = elements  # stash for removal
+                for elem in elements:
+                    self.reader_group.append(elem)
+                self._animations[name] = anim
+                self._animation = anim  # legacy compat
+            return True
+
+    def _clear_all_animations(self):
+        """Remove all active animations."""
+        for anim_name in list(self._animations.keys()):
+            anim = self._animations.pop(anim_name)
+            for elem in getattr(anim, '_elements', []):
+                try:
+                    self.reader_group.remove(elem)
+                except ValueError:
+                    pass
+            anim.destroy()
+        self._animation = None
+        # Safety: remove any lingering elements past base group
         base = getattr(self, '_base_group_size', 8)
         while len(self.reader_group) > base:
             self.reader_group.pop()
-        if self._animation is not None:
-            self._animation.destroy()
-            self._animation = None
-
-        anim = load_animation(name)
-        if anim is not None:
-            elements = anim.build(self)
-            for elem in elements:
-                self.reader_group.append(elem)
-            self._animation = anim
 
     def tick_animation(self, state, book):
         """Called after each word display, before refresh."""
-        if self._animation is not None:
-            self._animation.tick(state, book, self)
+        for anim in self._animations.values():
+            anim.tick(state, book, self)
 
     def show_reader_screen(self):
         if self._font_dirty:
             palette_idx = self.skin._palette_index
             self.skin = self.skin.__class__(self._font, self._smallfont)
             self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
+            self._base_group_size = len(self.reader_group)
             self.skin.apply_palette(palette_idx)
+            # Re-attach active animations to the new group
+            for anim in self._animations.values():
+                elements = anim.build(self)
+                anim._elements = elements
+                for elem in elements:
+                    self.reader_group.append(elem)
             self._font_dirty = False
         self.display.show(self.reader_group)
         self.display.refresh()

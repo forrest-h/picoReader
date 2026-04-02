@@ -4,7 +4,7 @@ from .utils import clean_word, load_reading_font
 from .settings import set_setting
 from .analytics import BookStats, SessionStats
 from .skins import SKIN_NAMES
-from .animations import ANIMATION_NAMES
+from .animations import ANIMATION_NAMES  # kept for backward compat
 from . import recent
 
 # ORP mode cycle: off -> color -> bold -> off
@@ -61,9 +61,10 @@ def next_chapter(state, book, disp):
     disp.refresh()
 
 def enter_jump_mode(state, book, disp):
-    """DOWN pressed while paused in reader mode."""
+    """DOWN pressed in reader mode — auto-pauses if playing."""
     if state.playing:
-        return
+        book.save_place()
+        state.playing = False
     if book.book_len > 0:
         state.jump_pct = int(book.line_num * 100 / book.book_len)
     else:
@@ -150,36 +151,47 @@ def _cycle_setting(state, disp, key):
         disp.set_skin(state.skin_name)
         disp.set_palette(0)
     elif key == 'palette':
-        palette_count = len(disp.skin.PALETTES)
-        state.theme_index = (state.theme_index + 1) % palette_count
-        set_setting(state.settings, 'palette', str(state.theme_index))
+        # Enter palette preview mode with live reader preview
+        state.mode = AppState.MODE_PALETTE
         disp.set_palette(state.theme_index)
+        disp.show_word("picoReader", state.orp_mode)
+        p = disp.skin.PALETTES[state.theme_index]
+        disp.show_wpm(p.get('name', str(state.theme_index)))
+        disp.show_reader_screen()
+        return  # Skip menu redraw
     elif key == 'orp':
         idx = ORP_NAMES.index(ORP_NAMES[0] if state.orp_mode is None else state.orp_mode)
         idx = (idx + 1) % len(ORP_NAMES)
         state.orp_mode = ORP_MODES[idx]
         set_setting(state.settings, 'orp', ORP_NAMES[idx])
-    elif key == 'animation':
-        from .animations import load_animation
-        curr = state.settings.get('animation', 'off')
-        idx = ANIMATION_NAMES.index(curr) if curr in ANIMATION_NAMES else 0
-        idx = (idx + 1) % len(ANIMATION_NAMES)
-        name = ANIMATION_NAMES[idx]
-        set_setting(state.settings, 'animation', name)
-        disp.set_animation(name)
+    elif key.startswith('anim_'):
+        anim_name = key[5:]  # e.g., 'walker', 'particles', 'page_turn'
+        if anim_name in state.active_animations:
+            state.active_animations.discard(anim_name)
+            disp.toggle_animation(anim_name)
+        else:
+            state.active_animations.add(anim_name)
+            disp.toggle_animation(anim_name)
+        if state.active_animations:
+            set_setting(state.settings, 'animation',
+                        ','.join(sorted(state.active_animations)))
+        else:
+            set_setting(state.settings, 'animation', 'off')
     elif key == 'font':
-        cycle_font(state, book=None, disp=disp)
-        return
+        # Enter font preview mode
+        state.mode = AppState.MODE_FONT
+        if state.font_name in AVAILABLE_FONTS:
+            state.font_preview_idx = AVAILABLE_FONTS.index(state.font_name)
+        else:
+            state.font_preview_idx = 0
+        _preview_font(state, disp)
+        return  # Skip menu redraw
     elif key == 'smart_pacing':
         state.smart_pacing = not state.smart_pacing
         set_setting(state.settings, 'smart_pacing', 'on' if state.smart_pacing else 'off')
     elif key == 'brightness':
-        # Enter brightness adjustment mode
+        # Enter brightness adjustment mode (stay on menu screen)
         state.mode = AppState.MODE_BRIGHTNESS
-        disp.show_word("Bright: {}%".format(state.brightness))
-        disp.show_wpm("scroll to adjust")
-        disp.show_reader_screen()
-        return  # Skip menu redraw
 
 
 def menu_select(state, book, disp):
@@ -233,8 +245,11 @@ def _setting_label(state, disp, key):
         return "Color: {}".format(name)
     elif key == 'orp':
         return "ORP: {}".format('off' if state.orp_mode is None else state.orp_mode)
-    elif key == 'animation':
-        return "Animation: {}".format(state.settings.get('animation', 'off'))
+    elif key.startswith('anim_'):
+        anim_name = key[5:]
+        on = anim_name in state.active_animations
+        display_name = anim_name.replace('_', ' ').title()
+        return "{}: {}".format(display_name, 'ON' if on else 'off')
     elif key == 'font':
         return "Font: {}".format(state.font_name.split('.')[0])
     elif key == 'smart_pacing':
@@ -310,16 +325,92 @@ def brightness_adjust_up(state, book, disp):
     state.brightness = min(100, state.brightness + 2)
     set_setting(state.settings, 'brightness', str(state.brightness))
     disp.set_brightness(state.brightness)
-    disp.show_word("Bright: {}%".format(state.brightness))
-    disp.refresh()
+    # Update menu label in-place and redraw menu
+    items = state.menu_state.current_node.children
+    node = items[state.menu_state.cursor]
+    node.label = _setting_label(state, disp, 'brightness')
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
 
 def brightness_adjust_down(state, book, disp):
     """Encoder CCW in brightness mode: decrease by 2%."""
     state.brightness = max(1, state.brightness - 2)
     set_setting(state.settings, 'brightness', str(state.brightness))
     disp.set_brightness(state.brightness)
-    disp.show_word("Bright: {}%".format(state.brightness))
+    # Update menu label in-place and redraw menu
+    items = state.menu_state.current_node.children
+    node = items[state.menu_state.cursor]
+    node.label = _setting_label(state, disp, 'brightness')
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
+
+
+# --- Palette preview mode handlers ---
+
+def palette_adjust_up(state, book, disp):
+    """Encoder CW in palette mode: next palette."""
+    palette_count = len(disp.skin.PALETTES)
+    state.theme_index = (state.theme_index + 1) % palette_count
+    set_setting(state.settings, 'palette', str(state.theme_index))
+    disp.set_palette(state.theme_index)
+    disp.show_word("picoReader", state.orp_mode)
+    p = disp.skin.PALETTES[state.theme_index]
+    disp.show_wpm(p.get('name', str(state.theme_index)))
     disp.refresh()
+
+def palette_adjust_down(state, book, disp):
+    """Encoder CCW in palette mode: previous palette."""
+    palette_count = len(disp.skin.PALETTES)
+    state.theme_index = (state.theme_index - 1) % palette_count
+    set_setting(state.settings, 'palette', str(state.theme_index))
+    disp.set_palette(state.theme_index)
+    disp.show_word("picoReader", state.orp_mode)
+    p = disp.skin.PALETTES[state.theme_index]
+    disp.show_wpm(p.get('name', str(state.theme_index)))
+    disp.refresh()
+
+def palette_confirm(state, book, disp):
+    """CENTER/UP in palette mode: confirm and return to menu."""
+    items = state.menu_state.current_node.children
+    node = items[state.menu_state.cursor]
+    node.label = _setting_label(state, disp, 'palette')
+    state.mode = AppState.MODE_MENU
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
+
+
+# --- Font preview mode handlers ---
+
+def _preview_font(state, disp):
+    """Show current font preview on reader screen."""
+    import gc
+    gc.collect()
+    font_name = AVAILABLE_FONTS[state.font_preview_idx]
+    new_font = load_reading_font(font_name)
+    disp.set_font(new_font)
+    disp.show_reader_screen()
+    display_name = font_name.split('.')[0]
+    disp.show_word(display_name)
+    disp.show_wpm("{}/{}".format(state.font_preview_idx + 1, len(AVAILABLE_FONTS)))
+    disp.refresh()
+
+def font_preview_next(state, book, disp):
+    """Encoder CW in font mode: next font."""
+    state.font_preview_idx = (state.font_preview_idx + 1) % len(AVAILABLE_FONTS)
+    _preview_font(state, disp)
+
+def font_preview_prev(state, book, disp):
+    """Encoder CCW in font mode: previous font."""
+    state.font_preview_idx = (state.font_preview_idx - 1) % len(AVAILABLE_FONTS)
+    _preview_font(state, disp)
+
+def font_confirm(state, book, disp):
+    """CENTER/UP in font mode: confirm selection and return to menu."""
+    font_name = AVAILABLE_FONTS[state.font_preview_idx]
+    state.font_name = font_name
+    set_setting(state.settings, 'font', font_name)
+    items = state.menu_state.current_node.children
+    node = items[state.menu_state.cursor]
+    node.label = _setting_label(state, disp, 'font')
+    state.mode = AppState.MODE_MENU
+    disp.show_menu_screen(state.menu_state, book.book_metadata)
 
 
 # --- Stats mode handlers ---
@@ -372,6 +463,12 @@ BUTTON_HANDLERS = {
     # Stats mode
     (AppState.MODE_STATS, BTN_CENTER): stats_dismiss,
     (AppState.MODE_STATS, BTN_UP):     stats_dismiss,
+    # Palette preview mode
+    (AppState.MODE_PALETTE, BTN_CENTER): palette_confirm,
+    (AppState.MODE_PALETTE, BTN_UP):     palette_confirm,
+    # Font preview mode
+    (AppState.MODE_FONT, BTN_CENTER): font_confirm,
+    (AppState.MODE_FONT, BTN_UP):     font_confirm,
 }
 
 ENCODER_HANDLERS = {
@@ -383,4 +480,8 @@ ENCODER_HANDLERS = {
     (AppState.MODE_JUMP, -1):       jump_adjust_down,
     (AppState.MODE_BRIGHTNESS, 1):  brightness_adjust_up,
     (AppState.MODE_BRIGHTNESS, -1): brightness_adjust_down,
+    (AppState.MODE_PALETTE, 1):     palette_adjust_up,
+    (AppState.MODE_PALETTE, -1):    palette_adjust_down,
+    (AppState.MODE_FONT, 1):        font_preview_next,
+    (AppState.MODE_FONT, -1):       font_preview_prev,
 }

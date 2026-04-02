@@ -54,24 +54,24 @@ class Skin:
         # [1] word prefix (main word in normal mode)
         self._word_prefix = label.Label(self._font, text='',
                                         color=pal['ink'],
-                                        base_alignment=False)
-        self._word_prefix.anchor_point = (0.5, 1)
+                                        base_alignment=True)
+        self._word_prefix.anchor_point = (0.5, 0.0)
         self._word_prefix.anchored_position = (80, WORD_Y)
         group.append(self._word_prefix)
 
         # [2] ORP character label
         self._word_orp = label.Label(self._font, text='',
                                      color=pal['dim'],
-                                     base_alignment=False)
-        self._word_orp.anchor_point = (0.0, 1)
+                                     base_alignment=True)
+        self._word_orp.anchor_point = (0.0, 0.0)
         self._word_orp.anchored_position = (80, WORD_Y)
         group.append(self._word_orp)
 
         # [3] word suffix label
         self._word_suffix = label.Label(self._font, text='',
                                         color=pal['ink'],
-                                        base_alignment=False)
-        self._word_suffix.anchor_point = (0.0, 1)
+                                        base_alignment=True)
+        self._word_suffix.anchor_point = (0.0, 0.0)
         self._word_suffix.anchored_position = (90, WORD_Y)
         group.append(self._word_suffix)
 
@@ -111,28 +111,35 @@ class Skin:
         if orp_mode == 'color' and len(word) > 1:
             prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
                 word, self._font)
-            self._word_prefix.anchor_point = (1.0, 1)
+            self._word_prefix.anchor_point = (1.0, 0.0)
             self._word_prefix.anchored_position = (px, jitter_y)
             self._word_prefix.text = prefix
             self._word_prefix.color = pal['ink']
-            self._word_orp.anchor_point = (0.5, 1)
+            self._word_orp.anchor_point = (0.5, 0.0)
             self._word_orp.anchored_position = (ox, jitter_y)
             self._word_orp.text = orp_char
             self._word_orp.color = pal['dim']
-            self._word_suffix.anchor_point = (0.0, 1)
+            self._word_suffix.anchor_point = (0.0, 0.0)
             self._word_suffix.anchored_position = (sx, jitter_y)
             self._word_suffix.text = suffix
             self._word_suffix.color = pal['ink']
         elif orp_mode == 'bold' and len(word) > 1:
             bold, fade = calc_bold_split(word)
-            self._word_prefix.anchor_point = (0.5, 1)
-            self._word_prefix.anchored_position = (80, jitter_y)
-            self._word_prefix.text = "{:^30}".format(word)
+            bold_w = sum(self._font.get_glyph(ord(c)).shift_x for c in bold)
+            fade_w = sum(self._font.get_glyph(ord(c)).shift_x for c in fade)
+            total_w = bold_w + fade_w
+            split_x = 80 - total_w // 2 + bold_w
+            self._word_prefix.anchor_point = (1.0, 0.0)
+            self._word_prefix.anchored_position = (split_x, jitter_y)
+            self._word_prefix.text = bold
             self._word_prefix.color = pal['ink']
             self._word_orp.text = ''
-            self._word_suffix.text = ''
+            self._word_suffix.anchor_point = (0.0, 0.0)
+            self._word_suffix.anchored_position = (split_x, jitter_y)
+            self._word_suffix.text = fade
+            self._word_suffix.color = pal['dim']
         else:
-            self._word_prefix.anchor_point = (0.5, 1)
+            self._word_prefix.anchor_point = (0.5, 0.0)
             self._word_prefix.anchored_position = (80, jitter_y)
             self._word_prefix.text = "{:^30}".format(word)
             self._word_prefix.color = pal['ink']

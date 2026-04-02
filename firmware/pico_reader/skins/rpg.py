@@ -52,6 +52,7 @@ class Skin:
         self._palette_index = 0
         self._last_hp_width = 0
         self._flavor_idx = 0
+        self._word_counter = 0
         # Set by build_group()
         self._bg_palette = None
         self._border_rect = None
@@ -99,24 +100,24 @@ class Skin:
         # [4] word prefix (main word in normal mode)
         self._word_prefix = label.Label(self._font, text='',
                                         color=pal['text'],
-                                        base_alignment=False)
-        self._word_prefix.anchor_point = (0.5, 1)
+                                        base_alignment=True)
+        self._word_prefix.anchor_point = (0.5, 0.0)
         self._word_prefix.anchored_position = (80, BOX_Y + BOX_H - 8)
         group.append(self._word_prefix)
 
         # [5] ORP character label
         self._word_orp = label.Label(self._font, text='',
                                      color=pal['border'],
-                                     base_alignment=False)
-        self._word_orp.anchor_point = (0.0, 1)
+                                     base_alignment=True)
+        self._word_orp.anchor_point = (0.0, 0.0)
         self._word_orp.anchored_position = (80, BOX_Y + BOX_H - 8)
         group.append(self._word_orp)
 
         # [6] word suffix label
         self._word_suffix = label.Label(self._font, text='',
                                         color=pal['text'],
-                                        base_alignment=False)
-        self._word_suffix.anchor_point = (0.0, 1)
+                                        base_alignment=True)
+        self._word_suffix.anchor_point = (0.0, 0.0)
         self._word_suffix.anchored_position = (90, BOX_Y + BOX_H - 8)
         group.append(self._word_suffix)
 
@@ -124,8 +125,8 @@ class Skin:
         self._prog_label = label.Label(self._smallfont, text='PROG',
                                        color=pal['border'],
                                        base_alignment=False)
-        self._prog_label.anchor_point = (1.0, 0.5)
-        self._prog_label.anchored_position = (HP_X - 2, HP_Y + HP_H // 2)
+        self._prog_label.anchor_point = (0.0, 0.5)
+        self._prog_label.anchored_position = (0, HP_Y + HP_H // 2)
         group.append(self._prog_label)
 
         # [8] HP-bar progress (mutable Bitmap)
@@ -153,36 +154,45 @@ class Skin:
         pal = PALETTES[self._palette_index]
         word_y = BOX_Y + BOX_H - 8
 
-        # Cycle flavor text based on word content for variety
+        # Cycle flavor text every 100 words
         if word:
-            self._flavor_idx = ord(word[0]) % len(FLAVOR_TEXTS)
-            self._flavor_label.text = FLAVOR_TEXTS[self._flavor_idx]
+            self._word_counter += 1
+            if self._word_counter % 100 == 1:
+                self._flavor_idx = (self._flavor_idx + 1) % len(FLAVOR_TEXTS)
+                self._flavor_label.text = FLAVOR_TEXTS[self._flavor_idx]
 
         if orp_mode == 'color' and len(word) > 1:
             prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
                 word, self._font)
-            self._word_prefix.anchor_point = (1.0, 1)
+            self._word_prefix.anchor_point = (1.0, 0.0)
             self._word_prefix.anchored_position = (px, word_y)
             self._word_prefix.text = prefix
             self._word_prefix.color = pal['text']
-            self._word_orp.anchor_point = (0.5, 1)
+            self._word_orp.anchor_point = (0.5, 0.0)
             self._word_orp.anchored_position = (ox, word_y)
             self._word_orp.text = orp_char
             self._word_orp.color = pal['border']
-            self._word_suffix.anchor_point = (0.0, 1)
+            self._word_suffix.anchor_point = (0.0, 0.0)
             self._word_suffix.anchored_position = (sx, word_y)
             self._word_suffix.text = suffix
             self._word_suffix.color = pal['text']
         elif orp_mode == 'bold' and len(word) > 1:
             bold, fade = calc_bold_split(word)
-            self._word_prefix.anchor_point = (0.5, 1)
-            self._word_prefix.anchored_position = (80, word_y)
-            self._word_prefix.text = "{:^30}".format(word)
+            bold_w = sum(self._font.get_glyph(ord(c)).shift_x for c in bold)
+            fade_w = sum(self._font.get_glyph(ord(c)).shift_x for c in fade)
+            total_w = bold_w + fade_w
+            split_x = 80 - total_w // 2 + bold_w
+            self._word_prefix.anchor_point = (1.0, 0.0)
+            self._word_prefix.anchored_position = (split_x, word_y)
+            self._word_prefix.text = bold
             self._word_prefix.color = pal['text']
             self._word_orp.text = ''
-            self._word_suffix.text = ''
+            self._word_suffix.anchor_point = (0.0, 0.0)
+            self._word_suffix.anchored_position = (split_x, word_y)
+            self._word_suffix.text = fade
+            self._word_suffix.color = pal['border']
         else:
-            self._word_prefix.anchor_point = (0.5, 1)
+            self._word_prefix.anchor_point = (0.5, 0.0)
             self._word_prefix.anchored_position = (80, word_y)
             self._word_prefix.text = "{:^30}".format(word)
             self._word_prefix.color = pal['text']

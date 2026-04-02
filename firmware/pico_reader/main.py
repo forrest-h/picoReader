@@ -159,9 +159,24 @@ def main():
     root = menu_mod.build_menu_tree(books, metadata, recent_filenames)
     state.menu_state = menu_mod.MenuState(root)
 
+    # Update animation submenu labels to reflect saved state
+    settings_node = root.children[5]  # Settings
+    for node in settings_node.children:
+        if node.children:  # Animation category
+            for child in node.children:
+                sk = getattr(child, 'setting_key', '')
+                if sk and sk.startswith('anim_'):
+                    anim_name = sk[5:]
+                    on = anim_name in state.active_animations
+                    display_name = anim_name.replace('_', ' ').title()
+                    child.label = "{}: {}".format(display_name, 'ON' if on else 'off')
+
     disp = Display(hw_display, backlight, font, smallfont,
                    skin_name=state.skin_name)
     disp.set_brightness(state.brightness)
+    # Load saved animations
+    for anim_name in state.active_animations:
+        disp.toggle_animation(anim_name)
     disp.show_menu_screen(state.menu_state, metadata)
 
     with keypad.Keys(PIN_BUTTONS, value_when_pressed=False, pull=True) as keys:
