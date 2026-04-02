@@ -101,6 +101,11 @@ class Display:
         if hasattr(self.skin, 'set_cursor_visible'):
             self.skin.set_cursor_visible(visible)
 
+    def set_book_title(self, title):
+        """Pass book title to skin if it supports title display."""
+        if hasattr(self.skin, 'set_book_title'):
+            self.skin.set_book_title(title)
+
     # --- Animation lifecycle ---
 
     def set_animation(self, name):
@@ -164,6 +169,7 @@ class Display:
             self.reader_group = self.skin.build_group(DISPLAY_WIDTH, DISPLAY_HEIGHT)
             self._base_group_size = len(self.reader_group)
             self.skin.apply_palette(palette_idx)
+            self._rebuild_menu_group()
             # Re-attach active animations to the new group
             for anim in self._animations.values():
                 elements = anim.build(self)

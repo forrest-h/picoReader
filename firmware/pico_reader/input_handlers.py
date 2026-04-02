@@ -213,10 +213,12 @@ def menu_select(state, book, disp):
         setting_key = result[8:]
         _cycle_setting(state, disp, setting_key)
         # Update the menu item label to show current value
-        items = state.menu_state.current_node.children
-        node = items[state.menu_state.cursor]
-        node.label = _setting_label(state, disp, setting_key)
-        disp.show_menu_screen(state.menu_state, book.book_metadata)
+        # (skip if _cycle_setting entered a preview mode)
+        if state.mode == AppState.MODE_MENU:
+            items = state.menu_state.current_node.children
+            node = items[state.menu_state.cursor]
+            node.label = _setting_label(state, disp, setting_key)
+            disp.show_menu_screen(state.menu_state, book.book_metadata)
     else:
         # A book was selected -- start reading
         book_id = result
@@ -232,6 +234,8 @@ def menu_select(state, book, disp):
         state.book_stats = book_stats
         state.session_stats = SessionStats()
         disp.set_palette(state.theme_index)
+        disp.set_book_title(book.book_metadata[book_id][0])
+        disp.update_progress(book.line_num, book.book_len)
         disp.show_reader_screen()
 
 

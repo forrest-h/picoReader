@@ -271,52 +271,49 @@ class TestBrightnessConfirm:
 # ---------------------------------------------------------------------------
 
 class TestBrightnessAdjust:
-    def test_up_increases_by_2(self):
+    def _setup(self, brightness):
         state, book, disp = _make_mocks()
-        state.brightness = 50
-        state.settings = {'brightness': '50'}
+        state.brightness = brightness
+        state.settings = {'brightness': str(brightness)}
+        state.menu_state = MagicMock()
+        state.menu_state.current_node.children = [MagicMock()]
+        state.menu_state.cursor = 0
+        return state, book, disp
+
+    def test_up_increases_by_2(self):
+        state, book, disp = self._setup(50)
         with patch('pico_reader.input_handlers.set_setting'):
             brightness_adjust_up(state, book, disp)
         assert state.brightness == 52
         disp.set_brightness.assert_called_once_with(52)
 
     def test_down_decreases_by_2(self):
-        state, book, disp = _make_mocks()
-        state.brightness = 50
-        state.settings = {'brightness': '50'}
+        state, book, disp = self._setup(50)
         with patch('pico_reader.input_handlers.set_setting'):
             brightness_adjust_down(state, book, disp)
         assert state.brightness == 48
         disp.set_brightness.assert_called_once_with(48)
 
     def test_up_clamps_at_100(self):
-        state, book, disp = _make_mocks()
-        state.brightness = 99
-        state.settings = {'brightness': '99'}
+        state, book, disp = self._setup(99)
         with patch('pico_reader.input_handlers.set_setting'):
             brightness_adjust_up(state, book, disp)
         assert state.brightness == 100
 
     def test_down_clamps_at_1(self):
-        state, book, disp = _make_mocks()
-        state.brightness = 2
-        state.settings = {'brightness': '2'}
+        state, book, disp = self._setup(2)
         with patch('pico_reader.input_handlers.set_setting'):
             brightness_adjust_down(state, book, disp)
         assert state.brightness == 1
 
     def test_down_cannot_go_below_1(self):
-        state, book, disp = _make_mocks()
-        state.brightness = 1
-        state.settings = {'brightness': '1'}
+        state, book, disp = self._setup(1)
         with patch('pico_reader.input_handlers.set_setting'):
             brightness_adjust_down(state, book, disp)
         assert state.brightness == 1
 
     def test_up_cannot_go_above_100(self):
-        state, book, disp = _make_mocks()
-        state.brightness = 100
-        state.settings = {'brightness': '100'}
+        state, book, disp = self._setup(100)
         with patch('pico_reader.input_handlers.set_setting'):
             brightness_adjust_up(state, book, disp)
         assert state.brightness == 100
@@ -406,11 +403,16 @@ class TestEnterJumpMode:
         assert state.jump_pct == 50
         disp.show_jump_screen.assert_called_once_with(50)
 
-    def test_noop_when_playing(self):
+    def test_auto_pauses_when_playing(self):
         state, book, disp = _make_mocks()
         state.playing = True
+        book.book_len = 1000
+        book.line_num = 500
         enter_jump_mode(state, book, disp)
-        assert state.mode != AppState.MODE_JUMP
+        assert state.mode == AppState.MODE_JUMP
+        assert state.playing is False
+        book.save_place.assert_called_once()
+        disp.show_jump_screen.assert_called_once()
 
     def test_zero_book_len(self):
         state, book, disp = _make_mocks()

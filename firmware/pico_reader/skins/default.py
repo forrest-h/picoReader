@@ -3,6 +3,12 @@ from adafruit_display_text import label
 from adafruit_display_shapes.rect import Rect
 from ..orp import calc_orp_positions, calc_bold_split
 
+
+def _glyph_w(font, ch):
+    g = font.get_glyph(ord(ch))
+    return g.shift_x if g else 0
+
+
 # BGR format (https://wamingo.net/rgbbgr/)
 PALETTES = [
     {'name': 'Dark',       'bg': 0x000000, 'text': 0xe7e7e7, 'wpm': 0x4c4c4c, 'highlight': 0x7c7c7c},
@@ -16,7 +22,7 @@ PALETTES = [
 GUIDE_RECTS = [(67, 42, 21, 1), (67, 84, 21, 1), (77, 42, 1, 6), (77, 78, 1, 6)]
 
 # Layout constants
-WORD_CENTER = (80, 70)
+WORD_CENTER = (80, 56)
 WPM_POS = (0, 128)
 DEFAULT_WPM = 200
 
@@ -69,14 +75,14 @@ class Skin:
         self._word_orp = label.Label(self._font, text='',
                                      color=pal['highlight'], base_alignment=True)
         self._word_orp.anchor_point = (0.0, 0.0)
-        self._word_orp.anchored_position = (80, 70)
+        self._word_orp.anchored_position = (80, WORD_CENTER[1])
         group.append(self._word_orp)
 
         # [3] word suffix label
         self._word_suffix = label.Label(self._font, text='',
                                         color=pal['text'], base_alignment=True)
         self._word_suffix.anchor_point = (0.0, 0.0)
-        self._word_suffix.anchored_position = (90, 70)
+        self._word_suffix.anchored_position = (90, WORD_CENTER[1])
         group.append(self._word_suffix)
 
         # [4-7] guide rects
@@ -113,32 +119,34 @@ class Skin:
             prefix, orp_char, suffix, px, ox, sx = calc_orp_positions(
                 word, self._font)
             pal = PALETTES[self._palette_index]
+            word_y = WORD_CENTER[1]
             self._word_prefix.anchor_point = (1.0, 0.0)
-            self._word_prefix.anchored_position = (px, 70)
+            self._word_prefix.anchored_position = (px, word_y)
             self._word_prefix.text = prefix
             self._word_prefix.color = pal['text']
             self._word_orp.anchor_point = (0.5, 0.0)
-            self._word_orp.anchored_position = (ox, 70)
+            self._word_orp.anchored_position = (ox, word_y)
             self._word_orp.text = orp_char
             self._word_orp.color = pal['highlight']
             self._word_suffix.anchor_point = (0.0, 0.0)
-            self._word_suffix.anchored_position = (sx, 70)
+            self._word_suffix.anchored_position = (sx, word_y)
             self._word_suffix.text = suffix
             self._word_suffix.color = pal['text']
         elif orp_mode == 'bold' and len(word) > 1:
             bold, fade = calc_bold_split(word)
             pal = PALETTES[self._palette_index]
-            bold_w = sum(self._font.get_glyph(ord(c)).shift_x for c in bold)
-            fade_w = sum(self._font.get_glyph(ord(c)).shift_x for c in fade)
+            word_y = WORD_CENTER[1]
+            bold_w = sum(_glyph_w(self._font, c) for c in bold)
+            fade_w = sum(_glyph_w(self._font, c) for c in fade)
             total_w = bold_w + fade_w
             split_x = 80 - total_w // 2 + bold_w
             self._word_prefix.anchor_point = (1.0, 0.0)
-            self._word_prefix.anchored_position = (split_x, 70)
+            self._word_prefix.anchored_position = (split_x, word_y)
             self._word_prefix.text = bold
             self._word_prefix.color = pal['text']
             self._word_orp.text = ''
             self._word_suffix.anchor_point = (0.0, 0.0)
-            self._word_suffix.anchored_position = (split_x, 70)
+            self._word_suffix.anchored_position = (split_x, word_y)
             self._word_suffix.text = fade
             self._word_suffix.color = pal['wpm']
         else:

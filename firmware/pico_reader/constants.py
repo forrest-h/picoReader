@@ -43,12 +43,12 @@ PIN_ENC_A = board.GP14
 PIN_ENC_B = board.GP13
 PIN_BACKLIGHT = board.GP16
 # 5-way keypad: CENTER, UP, LEFT, RIGHT, DOWN
-PIN_BUTTONS = [board.GP11, board.GP9, board.GP10, board.GP8, board.GP6]
+PIN_BUTTONS = [board.GP11, board.GP9, board.GP6, board.GP10, board.GP8]
 BTN_CENTER = 0  # GP11 — select / play / pause
 BTN_UP     = 1  # GP9  — back to menu
-BTN_LEFT   = 2  # GP10 — previous theme (when paused)
-BTN_RIGHT  = 3  # GP8  — next theme (when paused)
-BTN_DOWN   = 4  # GP6  — unused
+BTN_LEFT   = 2  # GP6  — prev chapter (when paused)
+BTN_RIGHT  = 3  # GP10 — next chapter (when paused)
+BTN_DOWN   = 4  # GP8  — jump mode (percentage nav)
 PIN_COM = [board.GP12, board.GP7]
 
 # Available 14px PCF reading fonts (in fonts/ directory)

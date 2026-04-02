@@ -207,7 +207,9 @@ class TestShowWord:
         skin = _make_skin()
         skin.build_group(160, 128)
         skin.show_word("hello", orp_mode='bold')
-        assert "hello" in skin._word_prefix.text
+        # Bold split gives first 40% of word as prefix (bold), rest as suffix (fade)
+        assert skin._word_prefix.text != ''
+        assert skin._word_suffix.text != ''
 
     def test_orp_clears_on_normal(self):
         skin = _make_skin()

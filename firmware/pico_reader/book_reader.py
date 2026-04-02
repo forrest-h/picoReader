@@ -42,18 +42,20 @@ class BookReader:
         """Return next word, or None at end of book."""
         while True:
             words = self._get_words(self.line_num)
-            if not words:
+            if words:
+                if self.word_idx < len(words):
+                    word = words[self.word_idx]
+                    self.word_idx += 1
+                    return word
                 self.line_num += 1
                 self.word_idx = 0
-                words = self._get_words(self.line_num)
-                if not words:
-                    return None
-            if self.word_idx < len(words):
-                word = words[self.word_idx]
-                self.word_idx += 1
-                return word
-            self.line_num += 1
-            self.word_idx = 0
+            else:
+                # [] could be blank line (in cache) or past EOF (not in cache)
+                idx = self.line_num - self._cache_start
+                if not (0 <= idx < len(self._cache)):
+                    return None  # Truly past EOF
+                self.line_num += 1
+                self.word_idx = 0
 
     def step_backward(self):
         """Return previous word, or None at start of book."""

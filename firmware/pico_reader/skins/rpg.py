@@ -3,6 +3,12 @@ from adafruit_display_text import label
 from adafruit_display_shapes.rect import Rect
 from ..orp import calc_orp_positions, calc_bold_split
 
+
+def _glyph_w(font, ch):
+    g = font.get_glyph(ord(ch))
+    return g.shift_x if g else 0
+
+
 # BGR format (https://wamingo.net/rgbbgr/)
 PALETTES = [
     {'name': 'Gold/Crimson', 'bg': 0x2e1a1a, 'border': 0x00c2e6, 'text': 0xeeeeee, 'hp_fill': 0x6045e9},
@@ -102,7 +108,7 @@ class Skin:
                                         color=pal['text'],
                                         base_alignment=True)
         self._word_prefix.anchor_point = (0.5, 0.0)
-        self._word_prefix.anchored_position = (80, BOX_Y + BOX_H - 8)
+        self._word_prefix.anchored_position = (80, BOX_Y + BOX_H // 2 - 2)
         group.append(self._word_prefix)
 
         # [5] ORP character label
@@ -110,7 +116,7 @@ class Skin:
                                      color=pal['border'],
                                      base_alignment=True)
         self._word_orp.anchor_point = (0.0, 0.0)
-        self._word_orp.anchored_position = (80, BOX_Y + BOX_H - 8)
+        self._word_orp.anchored_position = (80, BOX_Y + BOX_H // 2 - 2)
         group.append(self._word_orp)
 
         # [6] word suffix label
@@ -118,7 +124,7 @@ class Skin:
                                         color=pal['text'],
                                         base_alignment=True)
         self._word_suffix.anchor_point = (0.0, 0.0)
-        self._word_suffix.anchored_position = (90, BOX_Y + BOX_H - 8)
+        self._word_suffix.anchored_position = (90, BOX_Y + BOX_H // 2 - 2)
         group.append(self._word_suffix)
 
         # [7] PROG label
@@ -152,7 +158,7 @@ class Skin:
     def show_word(self, word, orp_mode=None):
         """Update the word display."""
         pal = PALETTES[self._palette_index]
-        word_y = BOX_Y + BOX_H - 8
+        word_y = BOX_Y + BOX_H // 2 - 2
 
         # Cycle flavor text every 100 words
         if word:
@@ -178,8 +184,8 @@ class Skin:
             self._word_suffix.color = pal['text']
         elif orp_mode == 'bold' and len(word) > 1:
             bold, fade = calc_bold_split(word)
-            bold_w = sum(self._font.get_glyph(ord(c)).shift_x for c in bold)
-            fade_w = sum(self._font.get_glyph(ord(c)).shift_x for c in fade)
+            bold_w = sum(_glyph_w(self._font, c) for c in bold)
+            fade_w = sum(_glyph_w(self._font, c) for c in fade)
             total_w = bold_w + fade_w
             split_x = 80 - total_w // 2 + bold_w
             self._word_prefix.anchor_point = (1.0, 0.0)

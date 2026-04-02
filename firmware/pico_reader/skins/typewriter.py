@@ -2,6 +2,12 @@ import displayio
 from adafruit_display_text import label
 from ..orp import calc_orp_positions, calc_bold_split
 
+
+def _glyph_w(font, ch):
+    g = font.get_glyph(ord(ch))
+    return g.shift_x if g else 0
+
+
 # BGR format (https://wamingo.net/rgbbgr/)
 PALETTES = [
     {'name': 'Cream/Brown',   'bg': 0xd8ecf4, 'ink': 0x1f2b3d, 'dim': 0x557388},
@@ -10,7 +16,7 @@ PALETTES = [
 ]
 
 # Layout constants
-WORD_Y = 70
+WORD_Y = 56
 UNDERLINE_Y = 126
 WPM_Y = 128
 
@@ -125,8 +131,8 @@ class Skin:
             self._word_suffix.color = pal['ink']
         elif orp_mode == 'bold' and len(word) > 1:
             bold, fade = calc_bold_split(word)
-            bold_w = sum(self._font.get_glyph(ord(c)).shift_x for c in bold)
-            fade_w = sum(self._font.get_glyph(ord(c)).shift_x for c in fade)
+            bold_w = sum(_glyph_w(self._font, c) for c in bold)
+            fade_w = sum(_glyph_w(self._font, c) for c in fade)
             total_w = bold_w + fade_w
             split_x = 80 - total_w // 2 + bold_w
             self._word_prefix.anchor_point = (1.0, 0.0)
